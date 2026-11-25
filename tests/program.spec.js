@@ -128,6 +128,16 @@ test("Émission à quatre, lecture seule des autres groupes, animation et retour
       "Alice",
       "Bonjour, nous parlons de la formation des montagnes.",
     );
+    await button(pupil, "Modifier les prénoms").click();
+    await pupil.getByLabel("Prénom 1", { exact: true }).fill("Alicia");
+    await button(pupil, "Enregistrer les prénoms").click();
+    await expect(pupil.locator(".save")).toHaveText("Sauvegardé");
+    await expect(
+      pupil.getByRole("textbox", { name: "Réplique 1 de Alicia" }),
+    ).toHaveValue("Bonjour, nous parlons de la formation des montagnes.");
+    await expect(cue(prof, "Le relief")).toContainText("Alicia, Benoît", {
+      timeout: 22000,
+    });
     await expect(cue(prof, "Le relief")).toContainText("En rédaction", {
       timeout: 22000,
     });
@@ -202,10 +212,15 @@ test("Émission à quatre, lecture seule des autres groupes, animation et retour
       prof.getByRole("button", { name: /créer la première partie/i }),
     ).toHaveCount(0);
     await writeReply(prof, "Animateur 1", "Bonsoir à toutes et tous !");
+    await button(prof, "Modifier les prénoms").click();
+    await prof.getByLabel("Prénom 1", { exact: true }).fill("Maya");
+    await button(prof, "Enregistrer les prénoms").click();
+    await expect(prof.locator(".save")).toHaveText("Sauvegardé");
     await button(prof, "Valider la séquence et relire le script").click();
     await expect(
       prof.getByRole("heading", { name: "Relecture du script" }),
     ).toBeVisible();
+    await expect(prof.locator(".line")).toContainText("Maya");
   } finally {
     await teacher.close();
     await student.close();

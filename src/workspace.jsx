@@ -166,6 +166,65 @@ function ReplyAction({ label, icon: Icon, tone, children, ...props }) {
     </button>
   );
 }
+function SpeakerNames({ people, animation, save, close }) {
+  const [original] = useState(people);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  async function submit(event) {
+    event.preventDefault();
+    const fields = new FormData(event.currentTarget);
+    const names = original.map((person) => fields.get(person.id).trim());
+    setBusy(true);
+    setError("");
+    try {
+      if (names.some((name) => !name))
+        throw Error("Indique un prénom pour chaque voix.");
+      if (
+        new Set(names.map((name) => name.toLowerCase())).size !== names.length
+      )
+        throw Error("Distingue les prénoms, par exemple avec une initiale.");
+      await save(original, names);
+      close();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Modal
+      title={animation ? "Prénoms des animateurs" : "Prénoms des chroniqueurs"}
+      close={close}
+    >
+      <form onSubmit={submit}>
+        {original.map((person, index) => (
+          <label key={person.id}>
+            Prénom {index + 1}
+            <input
+              autoFocus={index === 0}
+              required
+              maxLength={40}
+              name={person.id}
+              defaultValue={person.name}
+              style={{ borderLeft: "4px solid " + colors[index] }}
+            />
+          </label>
+        ))}
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
+        <button className="primary" disabled={busy}>
+          Enregistrer les prénoms
+        </button>
+      </form>
+    </Modal>
+  );
+}
+
 export function Workspace({ room, identity, leave, openProgram }) {
   const snapshot = useSyncExternalStore(room.subscribe, () => room.snapshot);
   const { rows, context } = snapshot,
@@ -246,6 +305,34 @@ export function Workspace({ room, identity, leave, openProgram }) {
       await room.save(transaction(room.rows, data, label));
       return true;
     });
+  }
+  async function saveNames(original, names) {
+    const latest = room.rows.meta.data;
+    if (
+      latest.people.length !== original.length ||
+      latest.people.some(
+        (person, index) =>
+          person.id !== original[index].id ||
+          person.name !== original[index].name,
+      )
+    )
+      throw Error(
+        "L’équipe a changé sur un autre appareil. Rouvre les prénoms pour voir la version à jour.",
+      );
+
+    if (latest.people.every((person, index) => person.name === names[index]))
+      return;
+    const people = latest.people.map((person, index) => ({
+      ...person,
+      name: names[index],
+    }));
+    await room.save(
+      transaction(
+        room.rows,
+        { meta: { ...latest, people } },
+        "Renommer les voix",
+      ),
+    );
   }
   function focus(id, at) {
     setActive(id);
@@ -628,6 +715,12 @@ export function Workspace({ room, identity, leave, openProgram }) {
               </span>
             ))}
           </div>
+          <button
+            className="edit-speakers"
+            onClick={() => setModal("speakers")}
+          >
+            <UserRoundPen aria-hidden="true" /> Modifier les prénoms
+          </button>
           <hr />
           {context?.showId && (
             <button
@@ -1085,6 +1178,14 @@ export function Workspace({ room, identity, leave, openProgram }) {
             </button>
           </div>
         </Modal>
+      )}
+      {modal === "speakers" && (
+        <SpeakerNames
+          people={m.people}
+          animation={animation}
+          save={saveNames}
+          close={() => setModal("")}
+        />
       )}
       {modal === "settings" && (
         <Modal title="Réglages de l’atelier" close={() => setModal("")}>

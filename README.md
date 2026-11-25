@@ -24,6 +24,8 @@ Le code donne accès au texte et à sa modification. Il se partage dans le group
 
 Le conducteur des émissions partagées utilise Supabase. Les durées de chroniques et d’animations sont estimées à partir des répliques enregistrées. Les jingles et les morceaux sont renseignés en minutes et secondes.
 
+Dans l’éditeur, **Modifier les prénoms** permet à l’enseignant et aux membres du groupe de renommer leurs voix. Les textes déjà attribués suivent le prénom corrigé jusque dans le conducteur et le PDF.
+
 ## Dictée et essai sur les MacBook
 
 À l’entrée dans l’atelier, un worker prépare **Whisper Large v3 Turbo**. Il télécharge depuis Hugging Face les poids ONNX épinglés dans `src/models.js`. Prévoir un premier chargement volumineux (plus d’un Go pour Turbo). La progression indique des octets par fichier. Le navigateur peut réutiliser son cache selon l’espace disponible. Le clavier est disponible pendant le téléchargement.

@@ -274,6 +274,38 @@ test("Conducteur complet, accès cloisonnés, progression et retours enseignants
     );
     const own = await rpc("read", first.room);
     assert.equal(own.rows.meta.data.speed, 170);
+    const originalPeople = own.rows.meta.data.people;
+    const renamedPeople = originalPeople.map((person, i) =>
+      i === 0 ? { ...person, name: "Alicia" } : person,
+    );
+    await assert.rejects(
+      tx(first.room, own.rows, {
+        meta: { ...own.rows.meta.data, people: originalPeople.toReversed() },
+      }),
+      /voix de l’équipe/,
+    );
+    await assert.rejects(
+      tx(first.room, own.rows, {
+        meta: { ...own.rows.meta.data, people: originalPeople.slice(0, 1) },
+      }),
+      /voix de l’équipe/,
+    );
+    assert.equal(
+      await tx(first.room, own.rows, {
+        meta: { ...own.rows.meta.data, people: renamedPeople },
+      }),
+      "ok",
+    );
+    const renamedDoc = await rpc("read", first.room);
+    assert.deepEqual(renamedDoc.rows.meta.data.people, renamedPeople);
+    assert.equal(renamedDoc.rows[block.id].data.speaker, originalPeople[0].id);
+    assert.equal(renamedDoc.code, first.code);
+    assert.deepEqual(
+      (await rpc("program_read", show)).items.find(
+        (item) => item.id === first.id,
+      ).names,
+      ["Alicia", "Benoît"],
+    );
     assert.ok(
       Object.values(own.rows).some(
         (r) => r.data.important && r.data.block === block.id,
@@ -298,6 +330,22 @@ test("Conducteur complet, accès cloisonnés, progression et retours enseignants
       }),
       /Structure/,
     );
+    assert.equal(
+      await tx(opening.room, animation.rows, {
+        meta: {
+          ...animation.rows.meta.data,
+          people: animation.rows.meta.data.people.map((person, i) =>
+            i === 0 ? { ...person, name: "Théo" } : person,
+          ),
+        },
+      }),
+      "ok",
+    );
+    const openingView = (await rpc("program_read", show)).items.find(
+      (item) => item.id === opening.id,
+    );
+    assert.equal(openingView.assigned, true);
+    assert.deepEqual(openingView.names, ["Théo", "Animateur 2"]);
     await who(outsider);
     assert.equal(await rpc("program_claim", show, program.managerKey), true);
     await rpc("program_archive", show, second.id, false);
