@@ -4,7 +4,7 @@ on:
     branches: [main]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 concurrency:
@@ -13,6 +13,8 @@ concurrency:
 jobs:
   compiler:
     runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.pages.outputs.mode }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -25,12 +27,36 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://yaxldwtzpufjhvgzkgrz.supabase.co' }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_avvS8xffD24YebfS_hEm7Q_m7bsFPxu' }}
-      - uses: actions/configure-pages@v6
+      - uses: actions/checkout@v7
+        with:
+          ref: gh-pages
+          path: site
+      - id: pages
+        name: Lire le mode de publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: echo "mode=$(gh api repos/${GITHUB_REPOSITORY}/pages --jq .build_type)" >> "$GITHUB_OUTPUT"
+      - name: Mettre à jour le site compilé
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          touch dist/.nojekyll
+          rsync -a --delete --exclude=.git dist/ site/
+          git -C site add --all
+          if ! git -C site diff --cached --quiet; then
+            git -C site -c user.name=github-actions -c user.email=41898282+github-actions[bot]@users.noreply.github.com commit -m "Publier ${GITHUB_SHA}"
+            git -C site push origin HEAD:gh-pages
+            if [ "${{ steps.pages.outputs.mode }}" = legacy ]; then
+              gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds"
+            fi
+          fi
       - uses: actions/upload-pages-artifact@v5
+        if: steps.pages.outputs.mode == 'workflow'
         with:
           path: dist
   publier:
     needs: compiler
+    if: needs.compiler.outputs.mode == 'workflow'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

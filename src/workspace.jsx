@@ -192,6 +192,7 @@ export function Workspace({ room, identity, leave }) {
     [insertAt, setInsertAt] = useState(null);
   const range = useRef({ id: null, at: 0 }),
     nodes = useRef({}),
+    structureAtOpen = useRef(null),
     drag = useRef(null),
     speech = useSpeech(),
     speechRef = useRef(null);
@@ -312,6 +313,10 @@ export function Workspace({ room, identity, leave }) {
       focus(active, pos + p.length);
     } else clipboard(p);
   }
+  function openNewPart() {
+    structureAtOpen.current = room.rows.meta.data.sections.join("/");
+    setModal("newpart");
+  }
   function anglesDone(angles, title) {
     action(async (r) => {
       const meta = r.meta.data,
@@ -333,6 +338,12 @@ export function Workspace({ room, identity, leave }) {
         setModal("");
         go(meta.sections[1]);
         return;
+      }
+      if (meta.sections.join("/") !== structureAtOpen.current) {
+        setModal("");
+        throw Error(
+          "La structure a changé pendant le choix des angles. Vérifie les parties du groupe avant d’en ajouter une.",
+        );
       }
       const id = uid(),
         sections = [...meta.sections];
@@ -357,8 +368,11 @@ export function Workspace({ room, identity, leave }) {
   }
   function validate() {
     action(async (r) => {
-      if (s.kind === "intro" && m.sections.length === 1) {
-        setModal("newpart");
+      if (
+        s.kind === "intro" &&
+        !m.sections.some((k) => rows[k].data.kind === "part")
+      ) {
+        openNewPart();
         return;
       }
       if (
@@ -711,7 +725,10 @@ export function Workspace({ room, identity, leave }) {
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
                       setActive(id);
-                      range.current = { id, at: nodes.current[id]?.selectionStart ?? 0 };
+                      range.current = {
+                        id,
+                        at: nodes.current[id]?.selectionStart ?? 0,
+                      };
                       setMenu(menu === id ? "" : id);
                     }}
                   >
@@ -955,7 +972,7 @@ export function Workspace({ room, identity, leave }) {
           <div className="validation">
             {s.kind === "part" && s.done ? (
               <div className="actions">
-                <button onClick={() => setModal("newpart")}>
+                <button onClick={openNewPart}>
                   <Plus />
                   Ajouter une nouvelle partie
                 </button>
@@ -967,7 +984,7 @@ export function Workspace({ room, identity, leave }) {
             ) : (
               <button className="primary" onClick={validate}>
                 {s.kind === "intro"
-                  ? m.sections.length === 1
+                  ? !m.sections.some((k) => rows[k].data.kind === "part")
                     ? "Valider l’introduction et créer la première partie"
                     : "Valider et ouvrir la première partie"
                   : s.kind === "part"

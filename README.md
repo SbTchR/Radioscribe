@@ -51,7 +51,7 @@ L’offre de l’organisation a été cotée à 0 $ par mois à la création. Le
 
 ## Déployer sur GitHub Pages
 
-Le dépôt contient un workflow **Publier Radioscribe**. Dans **Settings → Pages → Source**, choisir **GitHub Actions**. Un envoi sur `main` lance les tests de base de données et la compilation, puis publie `dist`. L’URL et la clé publiable du projet de cette installation figurent dans le workflow. Pour une autre installation, définir les variables de dépôt `VITE_SUPABASE_URL` et `VITE_SUPABASE_PUBLISHABLE_KEY` dans **Settings → Secrets and variables → Actions → Variables**, puis relancer le workflow. Les liens d’invitation utilisent un fragment, compatible avec le sous-dossier GitHub Pages. Les poids Whisper sont hébergés par Hugging Face.
+Le code source se trouve sur `main`, le site compilé sur `gh-pages`. Le workflow détecte la source sélectionnée dans **Settings → Pages**. Il accepte **GitHub Actions** ou **Deploy from a branch → gh-pages / (root)**. Le workflow **Publier Radioscribe** exécute les tests, compile et met à jour cette branche après chaque envoi sur `main`. Pour une copie indépendante, créer d’abord la branche `gh-pages` et y placer le contenu de `dist` avec un fichier vide `.nojekyll`. Les deux paramètres publics de l’installation se trouvent dans le workflow. Pour utiliser son propre projet, définir `VITE_SUPABASE_URL` et `VITE_SUPABASE_PUBLISHABLE_KEY` dans **Settings → Secrets and variables → Actions → Variables** puis relancer le workflow. Les liens d’invitation utilisent un fragment, compatible avec le sous-dossier GitHub Pages. Les poids Whisper sont hébergés par Hugging Face.
 
 ## Vérifications
 

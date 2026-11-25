@@ -4,6 +4,8 @@ async function create(page, n = 2) {
   await page
     .getByRole("button", { name: "Créer une chronique", exact: true })
     .click();
+  const solo = page.getByLabel("Travailler uniquement sur cet appareil");
+  if (await solo.count()) await solo.check();
   await page.getByLabel("Sujet de la chronique").fill("Ondes et montagnes");
   await page.getByRole("button", { name: String(n), exact: true }).click();
   for (let i = 0; i < n; i++)
