@@ -1,0 +1,434 @@
+{
+  "intro": [
+    {
+      "title": "Amorce",
+      "help": "Comment donner envie d'écouter ?",
+      "phrases": [
+        "Saviez-vous que… ?",
+        "Imaginez un instant…",
+        "Vous êtes-vous déjà demandé pourquoi… ?"
+      ]
+    },
+    {
+      "title": "Présentation des chroniqueurs",
+      "help": "",
+      "phrases": [
+        "Bonjour à toutes et à tous ! Au micro aujourd'hui, …",
+        "Je suis… et je suis accompagné de…"
+      ]
+    },
+    {
+      "title": "Présentation de l'animation et de la technique",
+      "help": "",
+      "phrases": [
+        "À l'animation, nous retrouvons…",
+        "Aujourd'hui, c'est … qui est à la technique."
+      ]
+    },
+    {
+      "title": "Présentation du sujet",
+      "help": "",
+      "phrases": [
+        "Aujourd'hui, nous allons vous parler de…",
+        "Notre chronique est consacrée à…"
+      ]
+    },
+    {
+      "title": "Intérêt du sujet",
+      "help": "",
+      "phrases": [
+        "Pourquoi en parler ? Parce que…",
+        "Ce sujet nous concerne car…",
+        "Vous allez découvrir pourquoi…"
+      ]
+    }
+  ],
+  "angles": [
+    {
+      "title": "Présentation",
+      "help": "De quoi s'agit-il ? Quelles sont ses principales caractéristiques ? Comment l'expliquer à quelqu'un qui ne connaît rien au sujet ?",
+      "phrases": [
+        "Pour commencer, qu'est-ce que… exactement ?",
+        "En quelques mots, …",
+        "Ce qui caractérise…, c'est…"
+      ]
+    },
+    {
+      "title": "Origines et histoire",
+      "help": "Quand et où cela a-t-il commencé ? Qui a joué un rôle ? Comment cela a-t-il évolué ?",
+      "phrases": [
+        "Pour comprendre…, remontons un peu dans le temps.",
+        "Tout a commencé…",
+        "Depuis, les choses ont beaucoup changé."
+      ]
+    },
+    {
+      "title": "Fonctionnement et déroulement",
+      "help": "Comment cela marche-t-il ? Quelles sont les étapes ? Que se passe-t-il concrètement ?",
+      "phrases": [
+        "Mais concrètement, comment ça fonctionne ?",
+        "Tout d'abord…, puis…",
+        "Prenons un exemple pour mieux comprendre."
+      ]
+    },
+    {
+      "title": "Personnes concernées",
+      "help": "Qui est concerné ? Qui joue un rôle important ? Qui en bénéficie ou en subit les effets ?",
+      "phrases": [
+        "Mais qui est vraiment concerné ?",
+        "Parmi les personnes qui jouent un rôle important, il y a…",
+        "Pour ces personnes, cela signifie que…"
+      ]
+    },
+    {
+      "title": "Causes et explications",
+      "help": "Pourquoi cela existe-t-il ou se produit-il ? Quels facteurs l'expliquent ? Y a-t-il plusieurs raisons ?",
+      "phrases": [
+        "Comment expliquer ce phénomène ?",
+        "Une des principales raisons, c'est…",
+        "Il ne faut pas oublier non plus que…"
+      ]
+    },
+    {
+      "title": "Conséquences et enjeux",
+      "help": "Quels sont les effets ? Quels avantages, inconvénients ou risques ? Pourquoi est-ce important ?",
+      "phrases": [
+        "Et quelles sont les conséquences ?",
+        "D'un côté…, mais de l'autre…",
+        "Le véritable enjeu, c'est…"
+      ]
+    },
+    {
+      "title": "Anecdotes et faits surprenants",
+      "help": "Qu'est-ce qui est insolite, méconnu ou inattendu ? Quelle petite histoire peut-on raconter ?",
+      "phrases": [
+        "Et maintenant, une petite anecdote.",
+        "Saviez-vous que… ?",
+        "Le plus étonnant dans cette histoire, c'est…"
+      ]
+    },
+    {
+      "title": "Opinions et perspectives",
+      "help": "Quels sont les différents points de vue ? Qu'en pense-t-on ? Comment la situation pourrait-elle évoluer ?",
+      "phrases": [
+        "Et toi, quel est ton avis ?",
+        "Certains pensent que…, alors que d'autres…",
+        "Dans les prochaines années, on pourrait…"
+      ]
+    },
+    {
+      "title": "Argent et économie",
+      "help": "Combien cela coûte-t-il ou rapporte-t-il ? Qui finance ? Comment gagne-t-on de l'argent autour de ce sujet ?",
+      "phrases": [
+        "Parlons maintenant d'argent.",
+        "Mais combien cela coûte-t-il ?",
+        "Une partie des revenus provient de…"
+      ]
+    },
+    {
+      "title": "Chiffres et statistiques",
+      "help": "Quels chiffres aident à comprendre ? Que représentent-ils ? À quoi peut-on les comparer ?",
+      "phrases": [
+        "Pour vous donner une idée, …",
+        "Un chiffre particulièrement frappant : …",
+        "Cela représente environ…"
+      ]
+    },
+    {
+      "title": "Records et exploits",
+      "help": "Quels sont les records ou les performances exceptionnelles ? Qui les a réalisés ? Pourquoi sont-ils remarquables ?",
+      "phrases": [
+        "Tenez-vous bien ! Le record est de…",
+        "Ce qui rend cet exploit impressionnant, c'est…",
+        "Peut-on faire mieux aujourd'hui ?"
+      ]
+    },
+    {
+      "title": "Comparaisons et différences",
+      "help": "Comment cela se passe-t-il ailleurs ? Quelles différences entre pays, époques ou situations ? Quels points communs ?",
+      "phrases": [
+        "Et ailleurs, comment cela se passe-t-il ?",
+        "Contrairement à…, …",
+        "Ce qui frappe quand on compare les deux, c'est…"
+      ]
+    },
+    {
+      "title": "Mythes et idées reçues",
+      "help": "Que croit-on souvent à tort ? Qu'est-ce qui est vrai ou faux ? Comment le vérifier ?",
+      "phrases": [
+        "On entend souvent dire que…",
+        "Mais est-ce vraiment vrai ?",
+        "En réalité, …"
+      ]
+    },
+    {
+      "title": "Controverses et polémiques",
+      "help": "Pourquoi cela fait-il débat ? Qui n'est pas d'accord ? Quels sont les arguments opposés ?",
+      "phrases": [
+        "Ce sujet ne fait pas l'unanimité.",
+        "Les défenseurs de… expliquent que…",
+        "À l'inverse, les critiques soulignent que…"
+      ]
+    },
+    {
+      "title": "Solutions et alternatives",
+      "help": "Que pourrait-on améliorer ? Quelles solutions existent ? Quels sont leurs avantages et limites ?",
+      "phrases": [
+        "Alors, que pourrait-on faire ?",
+        "Une solution possible serait de…",
+        "Mais cette solution a aussi ses limites."
+      ]
+    },
+    {
+      "title": "Actualité et nouveautés",
+      "help": "Que s'est-il passé récemment ? Qu'est-ce qui a changé ? Pourquoi en parle-t-on maintenant ?",
+      "phrases": [
+        "Ces derniers temps, on entend beaucoup parler de…",
+        "Récemment, …",
+        "Ce qui change aujourd'hui, c'est…"
+      ]
+    },
+    {
+      "title": "Témoignages et expériences personnelles",
+      "help": "Qu'ont vécu des personnes concernées ? Que racontent-elles ? Avons-nous une expérience pertinente à partager ?",
+      "phrases": [
+        "Pour illustrer cela, prenons le témoignage de…",
+        "De mon côté, j'ai déjà…",
+        "Qu'est-ce que tu en as retenu ?"
+      ]
+    },
+    {
+      "title": "Conseils pratiques",
+      "help": "Que peut-on recommander aux auditeurs ? Que faut-il savoir avant d'essayer ? Quelles erreurs éviter ?",
+      "phrases": [
+        "Si vous voulez vous lancer, …",
+        "Notre premier conseil serait de…",
+        "Attention toutefois à…"
+      ]
+    },
+    {
+      "title": "Influence et popularité",
+      "help": "Pourquoi est-ce connu ? Comment cela s'est-il diffusé ? Quel rôle jouent les médias et les réseaux sociaux ?",
+      "phrases": [
+        "Mais pourquoi est-ce devenu aussi populaire ?",
+        "Les réseaux sociaux ont joué un rôle dans…",
+        "Cette influence se retrouve notamment dans…"
+      ]
+    },
+    {
+      "title": "Autre aspect",
+      "help": "Qu'aimeriez-vous encore faire découvrir aux auditeurs ? Quelle question originale mérite une réponse ?",
+      "phrases": [
+        "Il y a un autre aspect dont on aimerait parler.",
+        "Intéressons-nous maintenant à…",
+        "Ce qui mérite aussi notre attention, c'est…"
+      ]
+    }
+  ],
+  "end": [
+    {
+      "title": "Rappeler l'essentiel",
+      "help": "Attendu",
+      "phrases": ["S'il y a une chose à retenir, c'est…", "Pour résumer, …"]
+    },
+    {
+      "title": "Donner un avis personnel",
+      "help": "Facultatif",
+      "phrases": [
+        "Personnellement, ce que je retiens, c'est…",
+        "De notre côté, nous pensons que…"
+      ]
+    },
+    {
+      "title": "Ouvrir sur une réflexion",
+      "help": "Facultatif",
+      "phrases": ["Et vous, qu'en pensez-vous ?", "Reste à savoir si…"]
+    },
+    {
+      "title": "Donner une recommandation",
+      "help": "Facultatif",
+      "phrases": ["Si vous voulez en savoir plus, nous vous conseillons de…"]
+    },
+    {
+      "title": "Terminer sur une phrase marquante",
+      "help": "Facultatif · Rappeler l'amorce, glisser une touche d'humour ou proposer une dernière idée forte.",
+      "phrases": []
+    },
+    {
+      "title": "Remercier les auditeurs et prendre congé",
+      "help": "Attendu",
+      "phrases": [
+        "Merci de nous avoir écoutés !",
+        "À très bientôt pour une nouvelle chronique."
+      ]
+    },
+    {
+      "title": "Présenter la musique suivante",
+      "help": "Dernière prise de parole obligatoire",
+      "phrases": [
+        "On vous laisse maintenant avec [titre], de [artiste]. Bonne écoute !",
+        "Place à la musique avec…"
+      ]
+    }
+  ],
+  "sos": [
+    {
+      "title": "Commencer à parler",
+      "phrases": [
+        "Bonjour à toutes et à tous !",
+        "Aujourd'hui, on va vous parler de…",
+        "Pour commencer, il faut savoir que…",
+        "Saviez-vous que… ?",
+        "Vous êtes-vous déjà demandé pourquoi… ?",
+        "Avant d'aller plus loin, expliquons ce qu'est…",
+        "Tout commence avec…",
+        "Prenons un instant pour comprendre…"
+      ]
+    },
+    {
+      "title": "Réagir et rebondir",
+      "phrases": [
+        "Ah bon ? Je ne savais pas !",
+        "C'est étonnant !",
+        "Justement, à ce propos…",
+        "Et ce n'est pas tout !",
+        "Ça me fait penser à…",
+        "Tu as raison, et on peut ajouter que…",
+        "C'est vrai, surtout quand on sait que…",
+        "Ça explique pourquoi…",
+        "Attends, ça veut dire que… ?"
+      ]
+    },
+    {
+      "title": "Poser une question et relancer",
+      "phrases": [
+        "Mais concrètement, comment ça marche ?",
+        "Est-ce que tu peux nous donner un exemple ?",
+        "Et pourquoi, justement ?",
+        "Qu'est-ce que ça veut dire exactement ?",
+        "Comment est-ce possible ?",
+        "Et ensuite, que s'est-il passé ?",
+        "Est-ce que c'est toujours le cas ?",
+        "Peux-tu nous en dire un peu plus ?"
+      ]
+    },
+    {
+      "title": "Nuancer, comparer et exprimer un désaccord",
+      "phrases": [
+        "Je ne suis pas tout à fait d'accord.",
+        "Oui, mais il faut aussi savoir que…",
+        "D'un côté…, de l'autre…",
+        "Ce n'est pas toujours aussi simple.",
+        "Il faut quand même faire une différence entre… et…",
+        "Cela dépend notamment de…",
+        "On pourrait aussi voir les choses autrement.",
+        "Contrairement à ce qu'on pourrait croire, …"
+      ]
+    },
+    {
+      "title": "Faire une transition et changer de sujet",
+      "phrases": [
+        "Maintenant qu'on en sait un peu plus sur…, intéressons-nous à…",
+        "Passons maintenant à un autre aspect.",
+        "Cela nous amène à une autre question.",
+        "Mais il y a encore un point important.",
+        "Après avoir parlé de…, voyons…",
+        "Un autre sujet mérite notre attention : …",
+        "Avant de terminer, parlons encore de…",
+        "Revenons un instant sur…"
+      ]
+    },
+    {
+      "title": "Passer la parole à un camarade",
+      "phrases": [
+        "Et toi, qu'est-ce que tu en penses ?",
+        "Je te laisse nous expliquer la suite.",
+        "Tu peux nous raconter ce qui s'est passé ?",
+        "Tu t'es justement intéressé à cette question.",
+        "Est-ce que tu aimerais ajouter quelque chose ?",
+        "À ton avis, pourquoi… ?",
+        "Tu as un exemple à nous donner ?",
+        "Je crois que tu as une information intéressante à ce sujet."
+      ]
+    },
+    {
+      "title": "S'adresser aux auditeurs",
+      "phrases": [
+        "Imaginez un instant…",
+        "Vous vous êtes peut-être déjà demandé pourquoi…",
+        "Pour vous donner une idée, …",
+        "Vous connaissez sûrement…",
+        "Peut-être avez-vous déjà vécu cette situation.",
+        "Essayez de deviner…",
+        "Vous allez comprendre pourquoi…",
+        "Et vous, qu'en pensez-vous ?"
+      ]
+    },
+    {
+      "title": "Donner du rythme et mettre en valeur une information",
+      "phrases": [
+        "Tenez-vous bien !",
+        "Et devinez quoi ?",
+        "Aussi incroyable que cela puisse paraître, …",
+        "Le plus surprenant, c'est que…",
+        "Mais ce n'est que le début !",
+        "Une chose est sûre : …",
+        "Attention, ce détail est important.",
+        "Et voilà où ça devient intéressant !"
+      ]
+    },
+    {
+      "title": "Expliquer, illustrer et préciser",
+      "phrases": [
+        "En d'autres termes, …",
+        "Pour faire simple, …",
+        "Prenons un exemple.",
+        "Cela veut dire que…",
+        "On peut comparer cela à…",
+        "Plus précisément, …",
+        "Ce chiffre représente…",
+        "Concrètement, cela signifie que…"
+      ]
+    },
+    {
+      "title": "Conclure et annoncer la musique",
+      "phrases": [
+        "Pour résumer, …",
+        "S'il y a une chose à retenir, c'est…",
+        "Pour terminer, on aimerait vous rappeler que…",
+        "Merci de nous avoir écoutés !",
+        "C'est tout pour aujourd'hui.",
+        "À très bientôt pour une nouvelle chronique.",
+        "On vous laisse maintenant avec [titre], de [artiste].",
+        "Place à la musique avec… Bonne écoute !"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "title": "Introduction",
+      "items": [
+        "Notre amorce donne envie d'écouter.",
+        "Nous avons présenté les chroniqueurs, l'animation et la technique.",
+        "Nous avons annoncé le sujet et expliqué pourquoi il est intéressant."
+      ]
+    },
+    {
+      "title": "Développement",
+      "items": [
+        "Chaque partie développe un aspect clair et les transitions sont naturelles.",
+        "Nos informations et chiffres ont été vérifiés ; les mots difficiles sont expliqués.",
+        "Les chroniqueurs se répondent, se posent des questions ou réagissent ; ce n'est pas une simple succession de monologues.",
+        "Chacun dispose d'un temps de parole raisonnable."
+      ]
+    },
+    {
+      "title": "Conclusion et préparation au studio",
+      "items": [
+        "Nous avons rappelé l'essentiel et remercié les auditeurs.",
+        "Notre toute dernière phrase annonce clairement le morceau de musique suivant (titre et artiste).",
+        "Nous avons relu les répliques, corrigé les erreurs de transcription et vérifié l'ordre de parole."
+      ]
+    }
+  ]
+}
