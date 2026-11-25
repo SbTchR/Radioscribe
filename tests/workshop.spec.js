@@ -23,6 +23,7 @@ async function add(page, name, text) {
     .last()
     .fill(text);
   await btn(page, "Valider la réplique").click();
+  await expect(btn(page, "Valider la réplique")).toHaveCount(0);
 }
 test.beforeEach(async ({ context }) => {
   await context.addInitScript(() => {
@@ -149,4 +150,66 @@ test("Chronique longue, réorganisation et impression sur plusieurs pages", asyn
     preferCSSPageSize: true,
     printBackground: false,
   });
+});
+
+test("Micro refusé, annulation et acceptation explicite de la redictée", async ({
+  page,
+}) => {
+  // Isolate the UI/media lifecycle. A separate measured benchmark exercises real Whisper.
+  await page.addInitScript(() => {
+    const RealWorker = window.Worker;
+    window.Worker = class {
+      constructor(url, ...args) {
+        if (!String(url).includes("speech.worker"))
+          return new RealWorker(url, ...args);
+      }
+      postMessage(msg) {
+        if (msg.type === "load")
+          queueMicrotask(() =>
+            this.onmessage({ data: { type: "ready", ms: 1 } }),
+          );
+        else
+          queueMicrotask(() =>
+            this.onmessage({
+              data: { type: "result", text: "Nouvelle phrase.", ms: 1 },
+            }),
+          );
+      }
+      terminate() {}
+    };
+    let attempt = 0;
+    navigator.mediaDevices.getUserMedia = async () => {
+      if (!attempt++)
+        throw new DOMException("Permission refusée", "NotAllowedError");
+      const ctx = new AudioContext(),
+        dest = ctx.createMediaStreamDestination(),
+        osc = ctx.createOscillator();
+      osc.connect(dest);
+      osc.start();
+      await ctx.resume();
+      return dest.stream;
+    };
+  });
+  await create(page);
+  await add(page, "Léa", "Texte à conserver.");
+  const box = page.getByRole("textbox", { name: "Réplique 1 de Léa" });
+  await box.focus();
+  await btn(page, "Redicter").click();
+  await expect(page.locator(".speechstate")).toContainText(
+    "Microphone indisponible",
+  );
+  await expect(box).toHaveValue("Texte à conserver.");
+  for (const accept of [false, true]) {
+    await btn(page, "Redicter").click();
+    await expect(page.locator(".blocktools")).toContainText("1 s", {
+      timeout: 6000,
+    });
+    await btn(page, "Arrêter et transcrire").click();
+    await expect(page.locator(".blocktools blockquote")).toHaveText(
+      "Nouvelle phrase.",
+    );
+    await expect(box).toHaveValue("Texte à conserver.");
+    await btn(page, accept ? "Accepter la transcription" : "Annuler").click();
+  }
+  await expect(box).toHaveValue("Nouvelle phrase.");
 });

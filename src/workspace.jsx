@@ -251,7 +251,7 @@ export function Workspace({ room, identity, leave }) {
   }
   function focus(id, at) {
     setActive(id);
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       const el = nodes.current[id];
       if (el) {
         el.focus();
@@ -259,7 +259,7 @@ export function Workspace({ room, identity, leave }) {
         el.setSelectionRange(p, p);
         range.current = { id, at: p };
       }
-    }, 40);
+    });
   }
   function go(id, block) {
     if (
@@ -711,6 +711,7 @@ export function Workspace({ room, identity, leave }) {
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
                       setActive(id);
+                      range.current = { id, at: nodes.current[id]?.selectionStart ?? 0 };
                       setMenu(menu === id ? "" : id);
                     }}
                   >
