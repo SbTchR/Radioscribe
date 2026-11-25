@@ -6,34 +6,24 @@ import React, {
   useSyncExternalStore,
 } from "react";
 import {
-  ArrowDown,
-  ArrowLeft,
   ArrowRight,
-  ArrowUp,
-  AudioLines,
   BookOpen,
   Check,
   CheckCheck,
-  ChevronDown,
   ChevronRight,
-  Clipboard,
-  Clock3,
   Copy,
   Ellipsis,
   FileText,
   GripVertical,
-  Headphones,
   LifeBuoy,
   Mic,
-  MicOff,
-  Pause,
-  PenLine,
   Plus,
-  Radio,
+  Scissors,
   Settings,
   Square,
+  Trash2,
   Undo2,
-  UsersRound,
+  UserRoundPen,
   X,
   Compass,
   History,
@@ -63,13 +53,18 @@ import {
   transaction,
   sectionName,
   stats,
-  time,
   insert,
   split,
-  merge,
-  move,
+  reorderReply,
 } from "./domain.js";
 import { Brand, Modal, Voice, fmtCode } from "./ui.jsx";
+import {
+  guidePrefix,
+  SpeakingTime,
+  WritingGuides,
+  WritingSOS,
+} from "./workshop-aids.jsx";
+import { useReplyDrag } from "./reply-drag.js";
 import { Review } from "./output.jsx";
 import { Drafts } from "./drafts.js";
 import { models } from "./models.js";
@@ -153,26 +148,19 @@ function Angles({ selected, title, save, close }) {
     </Modal>
   );
 }
-function HelpBank({ items, insertPhrase }) {
+function ReplyAction({ label, icon: Icon, tone, children, ...props }) {
   return (
-    <div className="helpbank">
-      {items.map((a) => (
-        <details key={a.title}>
-          <summary>{a.title}</summary>
-          {a.help && <p>{a.help}</p>}
-          {a.phrases.map((p) => (
-            <button
-              key={p}
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => insertPhrase(p)}
-            >
-              {p}
-              <Plus size={14} />
-            </button>
-          ))}
-        </details>
-      ))}
-    </div>
+    <button
+      type="button"
+      className="reply-action"
+      data-tone={tone}
+      aria-label={label}
+      title={label}
+      {...props}
+    >
+      <Icon size={18} aria-hidden="true" />
+      {children && <span>{children}</span>}
+    </button>
   );
 }
 export function Workspace({ room, identity, leave }) {
@@ -185,19 +173,18 @@ export function Workspace({ room, identity, leave }) {
     [active, setActive] = useState(null),
     [view, setView] = useState("edit"),
     [modal, setModal] = useState(""),
-    [menu, setMenu] = useState(""),
     [error, setError] = useState(""),
     [msg, setMsg] = useState(""),
-    [guide, setGuide] = useState(false),
-    [insertAt, setInsertAt] = useState(null);
-  const range = useRef({ id: null, at: 0 }),
-    nodes = useRef({}),
+    [replyPicker, setReplyPicker] = useState(null);
+  const nodes = useRef({}),
     structureAtOpen = useRef(null),
-    drag = useRef(null),
+    replyList = useRef(null),
     speech = useSpeech(),
     speechRef = useRef(null);
   const sid = m.sections.includes(section) ? section : "intro",
     s = rows[sid].data;
+  const drag = useReplyDrag(replyList, view === "edit" ? sid : null, moveReply);
+  const activeReply = s.blocks.includes(active) ? active : null;
   const working = { ...rows };
   for (const [k, d] of Object.entries(drafts.entries))
     if (rows[k])
@@ -228,8 +215,12 @@ export function Workspace({ room, identity, leave }) {
     };
   }, []);
   useEffect(() => {
-    room.track(identity, active);
-  }, [identity, active]);
+    room.track(identity, activeReply);
+  }, [identity, activeReply]);
+  useEffect(() => {
+    if (protectedSpeech && speech.target && !rows[speech.target])
+      cancelSpeech();
+  }, [rows, protectedSpeech, speech.target]);
   useEffect(() => {
     if (!msg) return;
     const t = setTimeout(() => setMsg(""), 3200);
@@ -258,7 +249,6 @@ export function Workspace({ room, identity, leave }) {
         el.focus();
         const p = at ?? el.value.length;
         el.setSelectionRange(p, p);
-        range.current = { id, at: p };
       }
     });
   }
@@ -272,26 +262,71 @@ export function Workspace({ room, identity, leave }) {
     setSection(id);
     setView("edit");
     setActive(null);
-    setMenu("");
-    setInsertAt(null);
-    setGuide(false);
+    setReplyPicker(null);
     if (block) focus(block);
   }
   function action(fn) {
-    setMenu("");
     return run(async () => {
       await drafts.flushAll();
       return fn(room.rows);
     });
   }
   const display = sectionName(m, sid, s);
-  function add(speaker, index) {
-    action(async (r) => {
-      const a = insert(r, sid, speaker, index ?? r[sid].data.blocks.length);
+  function add(speaker, after = null) {
+    run(async () => {
+      const r = room.rows;
+      const blocks = r[sid]?.data.blocks;
+      if (!blocks || (after && !blocks.includes(after))) {
+        setReplyPicker(null);
+        throw Error("Ce passage a été supprimé.");
+      }
+      const a = insert(
+        r,
+        sid,
+        speaker,
+        after ? blocks.indexOf(after) + 1 : blocks.length,
+      );
       if (await commit(a.updates, "Ajouter une réplique")) {
-        setModal("");
-        setInsertAt(null);
+        setReplyPicker(null);
         focus(a.id, 0);
+      }
+    });
+  }
+  function assign(id, speaker) {
+    run(async () => {
+      await drafts.flush(id);
+      const reply = room.rows[id]?.data;
+      if (!reply || !room.rows[sid]?.data.blocks.includes(id)) return;
+      if (
+        await commit({ [id]: { ...reply, speaker } }, "Réattribuer la réplique")
+      )
+        setReplyPicker(null);
+    });
+  }
+  function divide(id) {
+    const editor = nodes.current[id];
+    const { selectionStart: at, value: text } = editor;
+    run(async () => {
+      if (at <= 0 || at >= text.length) {
+        focus(id, at);
+        throw Error("Place le curseur entre les deux passages à séparer.");
+      }
+      await drafts.flush(id);
+      const r = room.rows;
+      if (r[id]?.data.text !== text || !r[sid]?.data.blocks.includes(id))
+        throw Error(
+          "Cette réplique a changé. Choisis à nouveau où la diviser.",
+        );
+      await commit(split(r, sid, id, at), "Diviser la réplique");
+    });
+  }
+  function moveReply(id, neighbor, edge, handle) {
+    run(async () => {
+      const moved = reorderReply(room.rows, sid, id, neighbor, edge);
+      if (!moved) return;
+      if (await commit(moved.updates, "Déplacer la réplique")) {
+        setMsg("Réplique déplacée en position " + moved.position + ".");
+        if (handle) requestAnimationFrame(() => handle.focus());
       }
     });
   }
@@ -299,19 +334,23 @@ export function Workspace({ room, identity, leave }) {
     return run(async () => {
       await navigator.clipboard.writeText(text);
       setMsg("Copié dans le presse-papiers.");
+      return true;
     });
   }
   function phrase(p) {
-    if (active && rows[active] && s.blocks.includes(active)) {
-      const text = working[active].data.text,
-        pos =
-          range.current.id === active
-            ? Math.min(text.length, range.current.at)
-            : text.length;
-      drafts.type(active, text.slice(0, pos) + p + text.slice(pos));
+    if (!activeReply) return clipboard(p);
+    return run(() => {
+      const editor = nodes.current[activeReply];
+      const pos = editor.selectionStart;
+      const left = editor.value.slice(0, pos);
+      const right = editor.value.slice(pos);
+      const prefix = left && !/\s$/.test(left) ? " " : "";
+      const suffix = right && !/^[\s,.!?;:…)]/.test(right) ? " " : "";
+      drafts.type(activeReply, left + prefix + p + suffix + right);
       setModal("");
-      focus(active, pos + p.length);
-    } else clipboard(p);
+      focus(activeReply, pos + prefix.length + p.length + suffix.length);
+      return true;
+    });
   }
   function openNewPart() {
     structureAtOpen.current = room.rows.meta.data.sections.join("/");
@@ -433,14 +472,18 @@ export function Workspace({ room, identity, leave }) {
           [sid]: null,
         };
       for (const k of r[sid].data.blocks) updates[k] = null;
+      for (const k of Object.keys(r))
+        if (k.startsWith(guidePrefix(sid))) updates[k] = null;
       if (await commit(updates, "Supprimer la partie")) go("intro");
     });
   }
   function remove(id) {
-    action((r) => {
-      if (!confirm("Supprimer cette réplique ?")) return;
-      const sec = r[sid].data;
-      return commit(
+    if (!confirm("Supprimer cette réplique ?")) return;
+    run(async () => {
+      await drafts.flush(id);
+      const sec = room.rows[sid]?.data;
+      if (!sec?.blocks.includes(id)) return;
+      await commit(
         {
           [sid]: { ...sec, blocks: sec.blocks.filter((k) => k !== id) },
           [id]: null,
@@ -449,12 +492,6 @@ export function Workspace({ room, identity, leave }) {
       );
     });
   }
-  const guides =
-    s.kind === "intro"
-      ? bank.intro
-      : s.kind === "end"
-        ? bank.end
-        : s.angles.map((i) => bank.angles[i]);
   const saved = snapshot.status
     ? "Erreur de synchronisation"
     : conflicts.length || snapshot.recovery.length
@@ -575,6 +612,8 @@ export function Workspace({ room, identity, leave }) {
               <button
                 key={k}
                 className={sid === k ? "current" : ""}
+                data-kind={rows[k].data.kind}
+                aria-current={sid === k ? "true" : undefined}
                 onClick={() => go(k)}
               >
                 {rows[k].data.done ? <CheckCheck /> : <FileText />}
@@ -602,7 +641,7 @@ export function Workspace({ room, identity, leave }) {
             </button>
           </div>
         </aside>
-        <main className="editor">
+        <main className="editor" data-kind={s.kind}>
           {statusBox}
           {snapshot.status && (
             <p className="notice">
@@ -625,7 +664,7 @@ export function Workspace({ room, identity, leave }) {
               <h1>{display}</h1>
             </div>
             <div className="actions">
-              <span className="statuspill">
+              <span className="statuspill" data-done={s.done}>
                 {s.done ? "Validée" : "En rédaction"}
               </span>
               {s.kind === "part" && (
@@ -639,38 +678,33 @@ export function Workspace({ room, identity, leave }) {
               )}
             </div>
           </div>
-          <div className="aids">
-            <button onClick={() => setGuide(!guide)} aria-expanded={guide}>
-              <BookOpen />
-              Pistes de rédaction
-              <ChevronDown size={16} />
-            </button>
-            <button onClick={() => setModal("sos")}>
-              <LifeBuoy />
-              SOS rédaction
-            </button>
-          </div>
-          {guide && (
-            <div className="guide">
-              {s.kind === "part" && (
-                <p>
-                  Vérifiez vos faits, chiffres et témoignages dans vos sources.
-                </p>
-              )}
-              <HelpBank items={guides} insertPhrase={phrase} />
-            </div>
-          )}
-          {s.kind === "end" && (
-            <p className="notice">
-              Gardez l’annonce du morceau (titre et artiste) pour la toute
-              dernière phrase.
-            </p>
-          )}
+          <SpeakingTime timing={timing} speed={m.speed} />
           <div className="dialoguehead">
-            <h3>Dialogue</h3>
-            <small>
-              {s.blocks.length} réplique{s.blocks.length > 1 ? "s" : ""}
-            </small>
+            <div className="dialogue-label">
+              <h3>Dialogue</h3>
+              <small>
+                {s.blocks.length} réplique{s.blocks.length === 1 ? "" : "s"}
+              </small>
+            </div>
+            <div className="actions">
+              <button
+                type="button"
+                className="writing-jump"
+                onClick={() =>
+                  document.getElementById("writing-guides")?.focus()
+                }
+              >
+                <BookOpen aria-hidden="true" /> Pistes de rédaction
+              </button>
+              <button
+                type="button"
+                className="sos-launch"
+                aria-haspopup="dialog"
+                onClick={() => setModal("sos")}
+              >
+                <LifeBuoy aria-hidden="true" /> SOS rédaction
+              </button>
+            </div>
           </div>
           {!s.blocks.length && (
             <div className="emptydialogue">
@@ -681,279 +715,177 @@ export function Workspace({ room, identity, leave }) {
               </p>
             </div>
           )}
-          {s.blocks.map((id, i) => {
-            const b = working[id].data,
-              live = protectedSpeech && recordingId === id;
-            return (
-              <article
-                key={id}
-                className={"block " + (active === id ? "editing" : "")}
-                style={{ "--voice": color(b.speaker) }}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  const src = drag.current;
-                  drag.current = null;
-                  if (src && s.blocks.includes(src))
-                    action((r) =>
-                      commit(move(r, sid, sid, src, i), "Déplacer la réplique"),
-                    );
-                }}
-              >
-                <div className="blockhead">
-                  {voice(b.speaker)}
-                  <small>
-                    {snapshot.peers
-                      .filter((v) => v.editing === id && v.person !== identity)
-                      .map((v) => who(v.person)?.name + " écrit…")
-                      .join(", ")}
-                  </small>
-                  <button
-                    className="icon handle"
-                    draggable
-                    aria-label="Faire glisser la réplique"
-                    onDragStart={(e) => {
-                      drag.current = id;
-                      e.dataTransfer.setData("text/plain", id);
-                    }}
-                  >
-                    <GripVertical size={18} />
-                  </button>
-                  <button
-                    className="icon"
-                    aria-label={"Options de la réplique " + (i + 1)}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => {
-                      setActive(id);
-                      range.current = {
-                        id,
-                        at: nodes.current[id]?.selectionStart ?? 0,
-                      };
-                      setMenu(menu === id ? "" : id);
-                    }}
-                  >
-                    <Ellipsis />
-                  </button>
-                </div>
-                <textarea
-                  ref={(el) => {
-                    nodes.current[id] = el;
-                  }}
-                  aria-label={
-                    "Réplique " + (i + 1) + " de " + who(b.speaker).name
-                  }
-                  value={b.text}
-                  placeholder="Écris ta réplique ici…"
-                  onFocus={() => setActive(id)}
-                  onSelect={(e) => {
-                    range.current = { id, at: e.target.selectionStart };
-                  }}
-                  onChange={(e) => drafts.type(id, e.target.value)}
-                  onBlur={() =>
-                    drafts.flush(id).catch((e) => setError(e.message))
-                  }
-                />
-                {menu === id && (
-                  <div className="blockmenu">
-                    {command("Modifier", () => {
-                      setMenu("");
-                      focus(id);
-                    })}
-                    {command(
-                      "Redicter",
-                      () => {
-                        setMenu("");
-                        speechRef.current = {
-                          id,
-                          rev: rows[id].rev,
-                          text: b.text,
-                        };
-                        startSpeech(id);
-                      },
-                      speech.phase !== "ready",
-                    )}
-                    {command("Diviser au curseur", () =>
-                      action((r) =>
-                        commit(
-                          split(
-                            r,
-                            sid,
-                            id,
-                            range.current.id === id ? range.current.at : 0,
-                          ),
-                          "Diviser la réplique",
-                        ),
-                      ),
-                    )}
-                    {command(
-                      "Fusionner avec la suivante",
-                      () =>
-                        action((r) =>
-                          commit(merge(r, sid, id), "Fusionner les répliques"),
-                        ),
-                      rows[s.blocks[i + 1]]?.data.speaker !== b.speaker,
-                    )}
-                    {["avant", "après"].map((w, j) => (
-                      <button
-                        key={w}
-                        onClick={() => {
-                          setMenu("");
-                          setInsertAt(i + j);
-                          setModal("speaker");
-                        }}
-                      >
-                        Insérer {w}
-                      </button>
-                    ))}
-                    {command(
-                      "Monter",
-                      () =>
-                        action((r) =>
-                          commit(
-                            move(r, sid, sid, id, i - 1),
-                            "Monter la réplique",
-                          ),
-                        ),
-                      i === 0,
-                    )}
-                    {command(
-                      "Descendre",
-                      () =>
-                        action((r) =>
-                          commit(
-                            move(r, sid, sid, id, i + 1),
-                            "Descendre la réplique",
-                          ),
-                        ),
-                      i === s.blocks.length - 1,
-                    )}
-                    <select
-                      aria-label="Réattribuer la réplique"
-                      value=""
-                      onChange={(e) => {
-                        const speaker = e.target.value;
-                        action((r) =>
-                          commit(
-                            { [id]: { ...r[id].data, speaker } },
-                            "Réattribuer la réplique",
-                          ),
-                        );
-                      }}
+          <div className="reply-list" ref={replyList}>
+            {s.blocks.map((id, index) => {
+              const b = working[id].data;
+              const live = protectedSpeech && recordingId === id;
+              const recordLabel = b.text ? "Redicter" : "Enregistrer";
+              const marker = drag.indicator?.drop;
+              const peers = snapshot.peers
+                .filter(
+                  (peer) => peer.editing === id && peer.person !== identity,
+                )
+                .map((peer) => who(peer.person)?.name + " écrit…");
+              return (
+                <article
+                  key={id}
+                  className="block"
+                  data-reply={id}
+                  data-active={activeReply === id}
+                  data-dragging={drag.indicator?.source === id}
+                  data-drop={marker?.id === id ? marker.edge : undefined}
+                  style={{ "--voice": color(b.speaker) }}
+                >
+                  <div className="blockhead">
+                    {voice(b.speaker)}
+                    <small>{peers.join(", ")}</small>
+                    <button
+                      type="button"
+                      className="icon handle"
+                      aria-label={"Déplacer la réplique " + (index + 1)}
+                      aria-keyshortcuts="ArrowUp ArrowDown"
+                      title="Glisser pour déplacer · ↑ et ↓ au clavier"
+                      disabled={s.blocks.length < 2 || live}
+                      {...drag.handle(id)}
                     >
-                      <option value="">Réattribuer à…</option>
-                      {m.people.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      aria-label="Déplacer vers une section"
-                      value=""
-                      onChange={(e) => {
-                        const dest = e.target.value;
-                        action((r) =>
-                          commit(
-                            move(r, sid, dest, id, r[dest].data.blocks.length),
-                            "Changer de section",
-                          ),
-                        );
-                      }}
-                    >
-                      <option value="">Déplacer vers…</option>
-                      {m.sections
-                        .filter((k) => k !== sid)
-                        .map((k) => (
-                          <option key={k} value={k}>
-                            {sectionName(m, k, rows[k].data)}
-                          </option>
-                        ))}
-                    </select>
-                    {command("Supprimer", () => remove(id))}
+                      <GripVertical size={20} aria-hidden="true" />
+                    </button>
                   </div>
-                )}
-                {active === id || live ? (
-                  <div className="blocktools">
-                    {live ? (
-                      <>
-                        <span>
-                          {speech.message}
-                          {speech.phase === "recording"
-                            ? " · " + speech.seconds + " s"
-                            : ""}
-                        </span>
-                        {speech.phase === "recording" && (
-                          <button onClick={stopSpeech}>
-                            <Square size={13} />
-                            Arrêter et transcrire
-                          </button>
-                        )}
-                        {speech.phase === "preview" && (
-                          <>
-                            <blockquote>
-                              {speech.result || "Aucune parole reconnue."}
-                            </blockquote>
-                            <button
-                              disabled={!speech.result}
-                              onClick={() =>
-                                run(async () => {
-                                  if (!rows[id]) return;
-                                  if (
-                                    working[id].data.text !==
-                                      speechRef.current?.text &&
-                                    !confirm(
-                                      "Le texte a changé pendant la dictée. Le remplacer par cette transcription ?",
-                                    )
+                  <textarea
+                    ref={(el) => {
+                      nodes.current[id] = el;
+                    }}
+                    aria-label={
+                      "Réplique " + (index + 1) + " de " + who(b.speaker).name
+                    }
+                    value={b.text}
+                    placeholder="Écris ta réplique ici…"
+                    onFocus={() => setActive(id)}
+                    onChange={(e) => drafts.type(id, e.target.value)}
+                    onBlur={() =>
+                      drafts.flush(id).catch((e) => setError(e.message))
+                    }
+                  />
+                  {live && (
+                    <div className="blocktools">
+                      <span>
+                        {speech.message}
+                        {speech.phase === "recording" &&
+                          " · " + speech.seconds + " s"}
+                      </span>
+                      {speech.phase === "recording" && (
+                        <button type="button" onClick={stopSpeech}>
+                          <Square size={13} /> Arrêter et transcrire
+                        </button>
+                      )}
+                      {speech.phase === "preview" && (
+                        <>
+                          <blockquote>
+                            {speech.result || "Aucune parole reconnue."}
+                          </blockquote>
+                          <button
+                            type="button"
+                            disabled={!speech.result}
+                            onClick={() =>
+                              run(() => {
+                                if (!room.rows[id]) return;
+                                if (
+                                  nodes.current[id]?.value !==
+                                    speechRef.current &&
+                                  !confirm(
+                                    "Le texte a changé pendant la dictée. Le remplacer par cette transcription ?",
                                   )
-                                    return;
-                                  drafts.type(id, speech.result);
-                                  cancelSpeech();
-                                  focus(id);
-                                })
-                              }
-                            >
-                              Accepter la transcription
-                            </button>
-                          </>
-                        )}
-                        <button onClick={() => cancelSpeech()}>Annuler</button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          disabled={speech.phase !== "ready"}
-                          onClick={() => {
-                            speechRef.current = { id, text: b.text };
-                            startSpeech(id);
-                          }}
-                        >
-                          <Mic size={15} />
-                          {b.text ? "Redicter" : "Enregistrer"}
-                        </button>
-                        <button
-                          onClick={() =>
-                            run(async () => {
-                              await drafts.flush(id);
-                              setActive(null);
-                              setMsg("Réplique validée.");
-                            })
-                          }
-                        >
-                          <Check size={15} />
-                          Valider la réplique
-                        </button>
-                      </>
-                    )}
+                                )
+                                  return;
+                                drafts.type(id, speech.result);
+                                cancelSpeech();
+                                focus(id);
+                              })
+                            }
+                          >
+                            Accepter la transcription
+                          </button>
+                        </>
+                      )}
+                      <button type="button" onClick={() => cancelSpeech()}>
+                        Annuler
+                      </button>
+                    </div>
+                  )}
+                  <div className="reply-actions">
+                    <ReplyAction
+                      label={recordLabel}
+                      icon={Mic}
+                      tone="rose"
+                      disabled={speech.phase !== "ready"}
+                      onClick={() => {
+                        setActive(id);
+                        speechRef.current = b.text;
+                        startSpeech(id);
+                      }}
+                    >
+                      {recordLabel}
+                    </ReplyAction>
+                    <ReplyAction
+                      label="Valider la réplique"
+                      icon={Check}
+                      tone="vert"
+                      disabled={live}
+                      onClick={() =>
+                        run(async () => {
+                          await drafts.flush(id);
+                          setActive((current) =>
+                            current === id ? null : current,
+                          );
+                          setMsg("Réplique validée.");
+                        })
+                      }
+                    >
+                      Valider la réplique
+                    </ReplyAction>
+                    <ReplyAction
+                      label="Diviser au curseur"
+                      icon={Scissors}
+                      tone="bleu"
+                      disabled={live || !b.text}
+                      onClick={() => divide(id)}
+                    />
+                    <ReplyAction
+                      label="Réattribuer à…"
+                      icon={UserRoundPen}
+                      tone="violet"
+                      disabled={live}
+                      aria-haspopup="dialog"
+                      onClick={() => setReplyPicker({ id, kind: "assign" })}
+                    />
+                    <ReplyAction
+                      label="Supprimer la réplique"
+                      icon={Trash2}
+                      tone="rose"
+                      disabled={live}
+                      onClick={() => remove(id)}
+                    />
+                    <ReplyAction
+                      label="Insérer après cette réplique"
+                      icon={Plus}
+                      tone="indigo"
+                      aria-haspopup="dialog"
+                      onClick={() => setReplyPicker({ id, kind: "insert" })}
+                    />
                   </div>
-                ) : null}
-              </article>
-            );
-          })}
+                </article>
+              );
+            })}
+          </div>
           <div className="addline">
             <small>Ajouter une réplique</small>
             <div className="actions">
               {m.people.map((p) => (
-                <button key={p.id} onClick={() => add(p.id)}>
+                <button
+                  key={p.id}
+                  style={{ "--voice": color(p.id) }}
+                  onClick={() => add(p.id)}
+                >
                   {voice(p.id)}
                   <Plus size={15} />
                 </button>
@@ -995,44 +927,22 @@ export function Workspace({ room, identity, leave }) {
             )}
           </div>
         </main>
-        <aside className="meter">
-          <h3>
-            <Clock3 />
-            Temps de parole
-          </h3>
-          <small>Chronique entière</small>
-          <strong>{time(timing.total)}</strong>
-          <div className="metersection">
-            Cette section <b>{time(timing.section)}</b>
-          </div>
-          <div className="bar">
-            {timing.people.map((p, i) => (
-              <i
-                key={p.id}
-                style={{ width: p.percent + "%", background: colors[i] }}
-              />
-            ))}
-          </div>
-          {timing.people.map((p, i) => (
-            <div className="meterperson" key={p.id}>
-              {voice(p.id)}
-              <span>
-                {time(p.seconds)} · {Math.round(p.percent)} %
-              </span>
-            </div>
-          ))}
-          <p>Estimation à {m.speed} mots/minute, hors musique et pauses.</p>
-        </aside>
+        <WritingGuides
+          key={sid}
+          sectionId={sid}
+          section={s}
+          rows={rows}
+          active={activeReply}
+          insertPhrase={phrase}
+          commit={commit}
+        />
       </div>
       {modal === "sos" && (
-        <Modal title="SOS rédaction" close={() => setModal("")}>
-          <p>
-            {active
-              ? "Clique sur une formulation pour l’insérer au curseur."
-              : "Clique sur une formulation pour la copier."}
-          </p>
-          <HelpBank items={bank.sos} insertPhrase={phrase} />
-        </Modal>
+        <WritingSOS
+          close={() => setModal("")}
+          active={activeReply}
+          insertPhrase={phrase}
+        />
       )}
       {(modal === "angles" || modal === "newpart") && (
         <Angles
@@ -1042,11 +952,35 @@ export function Workspace({ room, identity, leave }) {
           save={anglesDone}
         />
       )}
-      {modal === "speaker" && (
-        <Modal title="Qui prend la parole ?" close={() => setModal("")}>
+      {replyPicker && s.blocks.includes(replyPicker.id) && (
+        <Modal
+          title={
+            replyPicker.kind === "assign"
+              ? "Réattribuer la réplique"
+              : "Insérer une réplique"
+          }
+          close={() => setReplyPicker(null)}
+        >
+          <p>
+            {replyPicker.kind === "assign"
+              ? "Qui prononcera cette réplique ?"
+              : "Qui prend la parole ensuite ?"}
+          </p>
           <div className="actions">
             {m.people.map((p) => (
-              <button key={p.id} onClick={() => add(p.id, insertAt)}>
+              <button
+                type="button"
+                key={p.id}
+                disabled={
+                  replyPicker.kind === "assign" &&
+                  rows[replyPicker.id].data.speaker === p.id
+                }
+                onClick={() =>
+                  replyPicker.kind === "assign"
+                    ? assign(replyPicker.id, p.id)
+                    : add(p.id, replyPicker.id)
+                }
+              >
                 {voice(p.id)}
               </button>
             ))}

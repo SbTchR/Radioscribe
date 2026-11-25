@@ -4,8 +4,7 @@ import {
   initial,
   insert,
   split,
-  merge,
-  move,
+  reorderReply,
   apply,
   transaction,
   matches,
@@ -20,7 +19,7 @@ for (const n of [2, 3, 4])
     assert.deepEqual(r.meta.data.sections, ["intro"]);
     assert.equal(stats(r).total, 0);
   });
-test("Division, insertion, déplacement et fusion conservent le dialogue", () => {
+test("Division, insertion et déplacement conservent le dialogue", () => {
   let r = initial("Sujet", ["Léa", "Noah"]),
     [a, b] = r.meta.data.people;
   const save = (u) => {
@@ -30,17 +29,18 @@ test("Division, insertion, déplacement et fusion conservent le dialogue", () =>
   const first = insert(r, "intro", a.id, 0, original);
   save(first.updates);
   save(split(r, "intro", first.id, original.indexOf(" Puis")));
+  const second = r.intro.data.blocks[1];
   const other = insert(r, "intro", b.id, 1, "Ah bon ?");
   save(other.updates);
-  assert.throws(() => merge(r, "intro", first.id));
-  assert.equal(r.intro.data.blocks.length, 3);
-  save({
-    end: { kind: "end", blocks: [] },
-    meta: { ...r.meta.data, sections: ["intro", "end"] },
-  });
-  save(move(r, "intro", "end", other.id, 0));
-  save(merge(r, "intro", first.id));
-  assert.equal(r[first.id].data.text, original);
+  assert.deepEqual(r.intro.data.blocks, [first.id, other.id, second]);
+  assert.equal(reorderReply(r, "intro", other.id, second, "before"), null);
+  assert.equal(reorderReply(r, "intro", other.id, "deleted", "after"), null);
+  const moved = reorderReply(r, "intro", other.id, second, "after");
+  assert.equal(moved.position, 3);
+  save(moved.updates);
+  assert.deepEqual(r.intro.data.blocks, [first.id, second, other.id]);
+  assert.equal(r[first.id].data.text + r[second].data.text, original);
+  assert.equal(r[other.id].data.text, "Ah bon ?");
   assert.equal(words("L’école — très bien ! 25"), 4);
   assert.ok(stats(r).total > 0);
   assert.equal(

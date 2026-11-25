@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useId, useRef } from "react";
 import { AudioLines, X } from "lucide-react";
 export function Brand({ onClick }) {
   return (
@@ -14,8 +14,15 @@ export function Brand({ onClick }) {
     </button>
   );
 }
-export function Modal({ title, children, close, wide = false }) {
+export function Modal({
+  title,
+  children,
+  close,
+  wide = false,
+  className = "",
+}) {
   const ref = useRef(null);
+  const heading = useId();
   useEffect(() => {
     const el = ref.current;
     el.showModal();
@@ -24,22 +31,26 @@ export function Modal({ title, children, close, wide = false }) {
   return (
     <dialog
       ref={ref}
-      className={wide ? "wide" : ""}
+      className={wide ? "wide " + className : className}
+      aria-labelledby={heading}
       onCancel={(e) => {
         e.preventDefault();
         close();
       }}
       onClick={(e) => {
+        if (e.target !== ref.current) return;
+        const rect = ref.current.getBoundingClientRect();
         if (
-          e.target === ref.current &&
-          (e.clientX < ref.current.getBoundingClientRect().left ||
-            e.clientX > ref.current.getBoundingClientRect().right)
+          e.clientX < rect.left ||
+          e.clientX > rect.right ||
+          e.clientY < rect.top ||
+          e.clientY > rect.bottom
         )
           close();
       }}
     >
       <div className="modalhead">
-        <h2>{title}</h2>
+        <h2 id={heading}>{title}</h2>
         <button
           type="button"
           className="icon"

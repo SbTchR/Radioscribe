@@ -33,6 +33,12 @@ test("Deux navigateurs, coupure, reprise et conflit sur une même réplique", as
     await b.getByLabel("Code de la chronique").fill(code);
     await btn(b, "Ouvrir la chronique").click();
     await btn(b, "Voix B").click();
+    await a.getByRole("checkbox", { name: "Amorce", exact: true }).check();
+    await expect(
+      b.getByRole("checkbox", { name: "Amorce", exact: true }),
+    ).toBeChecked({
+      timeout: 25000,
+    });
     await a.locator(".addline button").first().click();
     await expect(b.locator(".block textarea")).toHaveCount(1, {
       timeout: 25000,

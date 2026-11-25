@@ -78,30 +78,20 @@ export function split(rows, sid, id, at) {
   );
   return { ...updates, [id]: { ...b, text: b.text.slice(0, at) } };
 }
-export function merge(rows, sid, id) {
-  const s = rows[sid].data,
-    other = s.blocks[s.blocks.indexOf(id) + 1],
-    a = rows[id].data,
-    b = rows[other]?.data;
-  if (!b || a.speaker !== b.speaker)
-    throw Error("La réplique suivante doit appartenir au même chroniqueur.");
-  const space =
-    a.text && b.text && !/\s$/.test(a.text) && !/^\s/.test(b.text) ? " " : "";
+export function reorderReply(rows, sid, id, neighbor, edge) {
+  const section = rows[sid]?.data;
+  if (
+    !section?.blocks.includes(id) ||
+    !section.blocks.includes(neighbor) ||
+    id === neighbor
+  )
+    return null;
+  const blocks = section.blocks.filter((key) => key !== id);
+  const index = blocks.indexOf(neighbor) + (edge === "after" ? 1 : 0);
+  if (section.blocks.indexOf(id) === index) return null;
   return {
-    [id]: { ...a, text: a.text + space + b.text },
-    [other]: null,
-    [sid]: { ...s, blocks: s.blocks.filter((k) => k !== other) },
-  };
-}
-export function move(rows, from, to, id, index) {
-  const src = rows[from].data,
-    dst = rows[to].data;
-  const blocks = src.blocks.filter((k) => k !== id);
-  if (from === to)
-    return { [from]: { ...src, blocks: blocks.toSpliced(index, 0, id) } };
-  return {
-    [from]: { ...src, blocks },
-    [to]: { ...dst, blocks: dst.blocks.toSpliced(index, 0, id) },
+    updates: { [sid]: { ...section, blocks: blocks.toSpliced(index, 0, id) } },
+    position: index + 1,
   };
 }
 export function stats(rows, sid) {

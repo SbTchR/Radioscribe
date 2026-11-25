@@ -20,12 +20,14 @@ async function create(page, n = 2) {
 const btn = (p, name) => p.getByRole("button", { name, exact: true });
 async function add(page, name, text) {
   await page.locator(".addline").getByRole("button", { name }).click();
-  await page
-    .getByRole("textbox", { name: new RegExp("Réplique .* de " + name) })
-    .last()
-    .fill(text);
-  await btn(page, "Valider la réplique").click();
-  await expect(btn(page, "Valider la réplique")).toHaveCount(0);
+  const card = page.locator(".block").last();
+  const editor = card.getByRole("textbox", {
+    name: new RegExp("Réplique .* de " + name),
+  });
+  await expect(editor).toBeFocused();
+  await editor.fill(text);
+  await btn(card, "Valider la réplique").click();
+  await expect(card).toHaveAttribute("data-active", "false");
 }
 test.beforeEach(async ({ context }) => {
   await context.addInitScript(() => {
@@ -40,6 +42,14 @@ test("Du dialogue à la répétition et au PDF personnalisé", async ({
   page,
 }, info) => {
   await create(page);
+  const guides = page.getByRole("complementary", {
+    name: "Pistes de rédaction",
+  });
+  const amorce = guides.getByRole("checkbox", { name: "Amorce", exact: true });
+  await expect(
+    guides.getByText("Comment donner envie d'écouter ?"),
+  ).toBeVisible();
+  await amorce.check();
   await add(page, "Léa", "Bonjour. Voici notre sujet.");
   const text = page.getByRole("textbox", { name: "Réplique 1 de Léa" });
   await text.focus();
@@ -47,24 +57,40 @@ test("Du dialogue à la répétition et au PDF personnalisé", async ({
     t.setSelectionRange(8, 8);
     t.dispatchEvent(new Event("select", { bubbles: true }));
   });
-  await btn(page, "Options de la réplique 1").click();
-  await btn(page, "Diviser au curseur").click();
+  const firstReply = page.locator(".block").first();
+  await btn(firstReply, "Diviser au curseur").click();
   await expect(page.locator(".block")).toHaveCount(2);
-  await btn(page, "Options de la réplique 1").click();
-  await btn(page, "Insérer après").click();
+  await btn(firstReply, "Insérer après cette réplique").click();
   await page.getByRole("dialog").getByRole("button", { name: "Noah" }).click();
   const middle = page.getByRole("textbox", { name: "Réplique 2 de Noah" });
+  await expect(middle).toBeFocused();
   await middle.fill("Alors ?");
   await middle.press("Home");
   await btn(page, "SOS rédaction").click();
-  await page.getByText("Réagir et rebondir", { exact: true }).click();
-  await btn(page, "Ah bon ? Je ne savais pas !").click();
-  await expect(middle).toHaveValue("Ah bon ? Je ne savais pas !Alors ?");
+  const sos = page.getByRole("dialog", { name: "SOS rédaction", exact: true });
+  const reactTile = btn(sos, "Réagir et rebondir");
+  await expect(sos.locator(".sos-tile")).toHaveCount(10);
+  await reactTile.click();
+  const phrases = page.getByRole("dialog", {
+    name: "Réagir et rebondir",
+    exact: true,
+  });
+  await expect(page.locator("dialog[open]")).toHaveCount(2);
+  await page.keyboard.press("Escape");
+  await expect(reactTile).toBeFocused();
+  await reactTile.click();
+  await btn(phrases, "Ah bon ? Je ne savais pas !").click();
+  await expect(page.locator("dialog[open]")).toHaveCount(0);
+  await expect(middle).toHaveValue("Ah bon ? Je ne savais pas ! Alors ?");
   await btn(page, "Valider l’introduction et créer la première partie").click();
   await page.getByRole("button", { name: /Origines et histoire/ }).click();
   await page.getByRole("button", { name: /Chiffres et statistiques/ }).click();
   await page.getByLabel("Titre de la partie").fill("Le relief");
   await btn(page, "Valider les angles et rédiger la partie").click();
+  await expect(guides.getByRole("checkbox")).toHaveCount(2);
+  await expect(
+    guides.getByRole("checkbox", { name: "Origines et histoire" }),
+  ).not.toBeChecked();
   await add(page, "Noah", "Les Alpes traversent plusieurs pays.");
   await btn(page, "Valider cette partie").click();
   await btn(page, "Passer à la conclusion").click();
@@ -93,6 +119,7 @@ test("Du dialogue à la répétition et au PDF personnalisé", async ({
   await page.reload();
   await btn(page, "Ouvrir la chronique").click();
   await btn(page, "Noah").click();
+  await expect(amorce).toBeChecked();
   await btn(page, "Relire le script").click();
   await expect(page.locator(".line")).toHaveCount(5);
 });
@@ -105,7 +132,49 @@ test("Accueil mobile et création à quatre", async ({ page }) => {
     ),
   ).toBe(true);
   await add(page, "Ali", "À vous les studios !");
+  await btn(page, "Pistes de rédaction").click();
+  await expect(
+    page.getByRole("heading", { name: "Pistes de rédaction" }),
+  ).toBeInViewport();
   await expect(page.locator(".meter")).toContainText("100 %");
+});
+
+test("Poignée à la souris et au clavier, réattribution et suppression directe", async ({
+  page,
+}) => {
+  await create(page);
+  await add(page, "Léa", "Première réplique.");
+  await add(page, "Noah", "Deuxième réplique.");
+  const cards = page.locator(".reply-list .block");
+  const first = cards.first();
+  const second = cards.last();
+  await btn(first, "Réattribuer à…").click();
+  await btn(
+    page.getByRole("dialog", { name: "Réattribuer la réplique" }),
+    "Noah",
+  ).click();
+  await expect(first.getByRole("textbox")).toHaveAccessibleName(
+    "Réplique 1 de Noah",
+  );
+  const handle = btn(first, "Déplacer la réplique 1");
+  await handle.scrollIntoViewIfNeeded();
+  const start = await handle.boundingBox();
+  const target = await second.boundingBox();
+  const x = start.x + start.width / 2;
+  await page.mouse.move(x, start.y + start.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(x, target.y + target.height * 0.8, { steps: 12 });
+  await expect(second).toHaveAttribute("data-drop", "after");
+  await page.mouse.up();
+  await expect(first.getByRole("textbox")).toHaveValue("Deuxième réplique.");
+  await btn(second, "Déplacer la réplique 2").press("ArrowUp");
+  await expect(first.getByRole("textbox")).toHaveValue("Première réplique.");
+  page.once("dialog", (dialog) => dialog.accept());
+  await btn(first, "Supprimer la réplique").click();
+  await expect(cards).toHaveCount(1);
+  await btn(page, "Annuler ma modification").click();
+  await expect(cards).toHaveCount(2);
+  await expect(first.getByRole("textbox")).toHaveValue("Première réplique.");
 });
 test("Chronique longue, réorganisation et impression sur plusieurs pages", async ({
   page,
