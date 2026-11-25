@@ -72,4 +72,5 @@ export function Voice({ name, color }) {
     </span>
   );
 }
-export const fmtCode = (c) => c.match(/.{1,4}/g).join("-");
+export const fmtCode = (code) =>
+  code.length <= 5 ? code : code.match(/.{1,4}/g).join("-");

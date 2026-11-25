@@ -1,5 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
-import { initial, uid, apply, matches, transaction } from "./domain.js";
+import {
+  initial,
+  uid,
+  apply,
+  matches,
+  transaction,
+  shortCode,
+  normalizeCode,
+} from "./domain.js";
 
 const url = import.meta.env.VITE_SUPABASE_URL,
   key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -19,9 +27,11 @@ export function recent() {
       title: visible(s).meta.data.title,
       code: s.code,
       online: s.online,
+      linked: !!s.context?.showId,
     }));
 }
-async function auth() {
+export async function auth() {
+  if (!cloud) throw Error("Le partage entre appareils nécessite Supabase.");
   const { data, error } = await cloud.auth.getSession();
   if (error) throw error;
   if (!data.session) {
@@ -29,7 +39,7 @@ async function auth() {
     if (error) throw Error("Connexion anonyme indisponible. " + error.message);
   }
 }
-async function rpc(name, args) {
+export async function rpc(name, args) {
   const { data, error } = await cloud.rpc("radio_" + name, args);
   if (error) throw Error(error.message);
   return data;
@@ -37,18 +47,41 @@ async function rpc(name, args) {
 function visible(s) {
   return s.pending.reduce((r, t) => (matches(r, t) ? apply(r, t) : r), s.rows);
 }
+function freeLocalCode() {
+  const codes = new Set(recent().map((project) => project.code));
+  let code;
+  do {
+    code = shortCode();
+  } while (codes.has(code));
+  return code;
+}
+export function upgradeLocalCodes() {
+  for (const project of recent()) {
+    if (project.online || project.code.length <= 5) continue;
+    const state = read(project.id);
+    write(project.id, {
+      ...state,
+      legacyCode: state.code,
+      code: freeLocalCode(),
+    });
+  }
+}
 export async function createRoom(title, names, localOnly = false) {
   const rows = initial(title, names);
-  let id = uid(),
-    code = id.replaceAll("-", "").slice(0, 12).toUpperCase();
-  if (cloud && !localOnly) {
+  const online = !!cloud && !localOnly;
+  let id;
+  let code;
+  if (online) {
     await auth();
     ({ id, code } = await rpc("create", { p_rows: rows }));
+  } else {
+    id = uid();
+    code = freeLocalCode();
   }
   write(id, {
     id,
     code,
-    online: !!cloud && !localOnly,
+    online,
     rows,
     version: 0,
     pending: [],
@@ -58,8 +91,10 @@ export async function createRoom(title, names, localOnly = false) {
   return id;
 }
 export async function joinRoom(input) {
-  const code = input.toUpperCase().replace(/[\s-]/g, "");
-  const cached = recent().find((p) => p.code === code);
+  const code = normalizeCode(input);
+  const cached = recent().find(
+    (p) => p.code === code || read(p.id).legacyCode === code,
+  );
   if (cached && (!cached.online || !navigator.onLine)) return cached.id;
   if (!cloud)
     throw Error(
@@ -71,18 +106,30 @@ export async function joinRoom(input) {
     throw Error(
       "Code inconnu ou trop de tentatives. Vérifie le code, puis réessaie.",
     );
+  return openSharedRoom(id, code);
+}
+export async function reopenRoom(id) {
+  if (!read(id)?.online || !navigator.onLine) return id;
+  await auth();
+  return openSharedRoom(id);
+}
+export async function openSharedRoom(id, fallbackCode) {
   const snap = await rpc("read", { p_room: id });
+  if (!snap || snap.context?.editable === false)
+    throw Error("L’accès à cette partie de l’émission est indisponible.");
   await navigator.locks.request(localKey(id), () => {
-    if (!read(id))
-      write(id, {
-        id,
-        code,
-        online: true,
-        ...snap,
-        pending: [],
-        recovery: [],
-        updated: Date.now(),
-      });
+    const existing = read(id);
+    if (existing && existing.version > snap.version) return;
+    write(id, {
+      id,
+      online: true,
+      pending: [],
+      recovery: [],
+      ...existing,
+      ...snap,
+      code: snap.code || existing?.code || fallbackCode,
+      updated: Date.now(),
+    });
   });
   return id;
 }
@@ -221,9 +268,16 @@ export class Room {
     this.debounce = setTimeout(() => this.sync(), 80);
   }
   async sync() {
-    if (this.closed || this.busy || !navigator.onLine || !this.state.online)
-      return;
-    this.busy = true;
+    if (this.syncing) return this.syncing;
+    if (this.closed || !navigator.onLine || !this.state.online) return;
+    this.syncing = this.syncPending();
+    try {
+      await this.syncing;
+    } finally {
+      this.syncing = null;
+    }
+  }
+  async syncPending() {
     try {
       await navigator.locks.request("send." + this.id, async () => {
         while (!this.closed) {
@@ -244,11 +298,19 @@ export class Room {
             throw Error(
               "Accès au projet perdu. Rejoins-le à nouveau avec son code.",
             );
-          if (tx || fresh.version > read(this.id).version)
+          const stored = read(this.id);
+          if (
+            tx ||
+            fresh.version > stored.version ||
+            (fresh.code && fresh.code !== stored.code) ||
+            JSON.stringify(fresh.context) !== JSON.stringify(stored.context)
+          )
             await this.mutate((s) => {
               if (fresh.version >= s.version) {
                 s.rows = fresh.rows;
                 s.version = fresh.version;
+                s.code = fresh.code || s.code;
+                s.context = fresh.context;
               }
               if (tx) {
                 s.pending = s.pending.filter((t) => t.id !== tx.id);
@@ -262,7 +324,6 @@ export class Room {
     } catch (e) {
       this.status = e.message;
     } finally {
-      this.busy = false;
       if (!this.closed) this.reload();
     }
   }

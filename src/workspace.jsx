@@ -6,6 +6,7 @@ import React, {
   useSyncExternalStore,
 } from "react";
 import {
+  ArrowLeft,
   ArrowRight,
   BookOpen,
   Check,
@@ -66,6 +67,8 @@ import {
 } from "./workshop-aids.jsx";
 import { useReplyDrag } from "./reply-drag.js";
 import { Review } from "./output.jsx";
+import { Feedback, feedbackEntries } from "./feedback.jsx";
+import { animationGuides } from "./animation.js";
 import { Drafts } from "./drafts.js";
 import { models } from "./models.js";
 import {
@@ -163,10 +166,12 @@ function ReplyAction({ label, icon: Icon, tone, children, ...props }) {
     </button>
   );
 }
-export function Workspace({ room, identity, leave }) {
+export function Workspace({ room, identity, leave, openProgram }) {
   const snapshot = useSyncExternalStore(room.subscribe, () => room.snapshot);
-  const { rows } = snapshot,
+  const { rows, context } = snapshot,
     m = rows.meta.data;
+  const animation = Object.hasOwn(animationGuides, context?.kind);
+  const feedback = context?.showId ? feedbackEntries(rows) : [];
   const [, refresh] = useReducer((x) => x + 1, 0);
   const [drafts] = useState(() => new Drafts(room, refresh));
   const [section, setSection] = useState("intro"),
@@ -175,6 +180,7 @@ export function Workspace({ room, identity, leave }) {
     [modal, setModal] = useState(""),
     [error, setError] = useState(""),
     [msg, setMsg] = useState(""),
+    [feedbackTarget, setFeedbackTarget] = useState(null),
     [replyPicker, setReplyPicker] = useState(null);
   const nodes = useRef({}),
     structureAtOpen = useRef(null),
@@ -270,6 +276,17 @@ export function Workspace({ room, identity, leave }) {
       await drafts.flushAll();
       return fn(room.rows);
     });
+  }
+  function navigate(destination) {
+    action(async () => {
+      cancelSpeech();
+      await room.sync();
+      destination();
+    });
+  }
+  function showFeedback(block) {
+    setFeedbackTarget(block);
+    setModal("feedback");
   }
   const display = sectionName(m, sid, s);
   function add(speaker, after = null) {
@@ -421,7 +438,7 @@ export function Workspace({ room, identity, leave }) {
         )
       ) {
         if (s.kind === "intro") go(m.sections[1]);
-        else if (s.kind === "end") setView("review");
+        else if (animation || s.kind === "end") setView("review");
       }
     });
   }
@@ -543,6 +560,18 @@ export function Workspace({ room, identity, leave }) {
       )}
     </>
   );
+  const feedbackPanel = context?.showId && (
+    <Feedback
+      room={room}
+      identity={identity}
+      manager={context.manager}
+      entries={feedback}
+      target={feedbackTarget}
+      open={modal === "feedback"}
+      show={showFeedback}
+      close={() => setModal("")}
+    />
+  );
   if (view === "review")
     return (
       <>
@@ -552,20 +581,14 @@ export function Workspace({ room, identity, leave }) {
           edit={go}
           back={() => setView("edit")}
           commit={commit}
+          animation={animation}
         />
       </>
     );
   return (
     <>
       <header className="mast projectmast">
-        <Brand
-          onClick={() =>
-            action(() => {
-              cancelSpeech();
-              leave();
-            })
-          }
-        />
+        <Brand onClick={() => navigate(leave)} />
         <span className="save" title={snapshot.status}>
           <i />
           {saved}
@@ -586,7 +609,7 @@ export function Workspace({ room, identity, leave }) {
       </header>
       <div className="workspace">
         <aside className="sidebar">
-          <small>Votre chronique</small>
+          <small>{animation ? "Votre animation" : "Votre chronique"}</small>
           <h2>{m.title}</h2>
           <div className="voices">
             {m.people.map((p) => (
@@ -606,6 +629,14 @@ export function Workspace({ room, identity, leave }) {
             ))}
           </div>
           <hr />
+          {context?.showId && (
+            <button
+              className="program-back"
+              onClick={() => navigate(() => openProgram(context.showId))}
+            >
+              <ArrowLeft /> Conducteur de l’émission
+            </button>
+          )}
           <h3>Structure</h3>
           <nav>
             {m.sections.map((k) => (
@@ -659,7 +690,11 @@ export function Workspace({ room, identity, leave }) {
             <div>
               <small className="breadcrumb">
                 Rédaction <ChevronRight size={12} />{" "}
-                {s.kind === "part" ? "Développement" : s.title}
+                {animation
+                  ? "Animation"
+                  : s.kind === "part"
+                    ? "Développement"
+                    : s.title}
               </small>
               <h1>{display}</h1>
             </div>
@@ -678,7 +713,8 @@ export function Workspace({ room, identity, leave }) {
               )}
             </div>
           </div>
-          <SpeakingTime timing={timing} speed={m.speed} />
+          <SpeakingTime timing={timing} speed={m.speed} animation={animation} />
+          {feedbackPanel}
           <div className="dialoguehead">
             <div className="dialogue-label">
               <h3>Dialogue</h3>
@@ -719,6 +755,7 @@ export function Workspace({ room, identity, leave }) {
             {s.blocks.map((id, index) => {
               const b = working[id].data;
               const live = protectedSpeech && recordingId === id;
+              const comments = feedback.filter((entry) => entry.block === id);
               const recordLabel = b.text ? "Redicter" : "Enregistrer";
               const marker = drag.indicator?.drop;
               const peers = snapshot.peers
@@ -865,6 +902,15 @@ export function Workspace({ room, identity, leave }) {
                       disabled={live}
                       onClick={() => remove(id)}
                     />
+                    {context?.manager && context.showId && (
+                      <ReplyAction
+                        label={"Commenter la réplique " + (index + 1)}
+                        icon={MessageCircle}
+                        tone="violet"
+                        aria-haspopup="dialog"
+                        onClick={() => showFeedback(id)}
+                      />
+                    )}
                     <ReplyAction
                       label="Insérer après cette réplique"
                       icon={Plus}
@@ -873,6 +919,23 @@ export function Workspace({ room, identity, leave }) {
                       onClick={() => setReplyPicker({ id, kind: "insert" })}
                     />
                   </div>
+                  {!!comments.length && (
+                    <ul
+                      className="reply-comments"
+                      aria-label="Commentaires de l’enseignant"
+                    >
+                      {comments.map((entry) => (
+                        <li key={entry.id}>
+                          <strong>
+                            {entry.important
+                              ? "Commentaire important"
+                              : "Commentaire de l’enseignant"}
+                          </strong>
+                          <p>{entry.text}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </article>
               );
             })}
@@ -921,7 +984,9 @@ export function Workspace({ room, identity, leave }) {
                     : "Valider et ouvrir la première partie"
                   : s.kind === "part"
                     ? "Valider cette partie"
-                    : "Terminer la chronique et relire le script"}
+                    : animation
+                      ? "Valider la séquence et relire le script"
+                      : "Terminer la chronique et relire le script"}
                 <ArrowRight />
               </button>
             )}
@@ -1033,7 +1098,7 @@ export function Workspace({ room, identity, leave }) {
                     {
                       meta: {
                         ...r.meta.data,
-                        title: f.get("title").trim() || r.meta.data.title,
+                        title: f.get("title")?.trim() || r.meta.data.title,
                         speed: +f.get("speed"),
                       },
                     },
@@ -1044,15 +1109,17 @@ export function Workspace({ room, identity, leave }) {
               });
             }}
           >
-            <label>
-              Sujet de la chronique
-              <input
-                name="title"
-                required
-                maxLength="160"
-                defaultValue={m.title}
-              />
-            </label>
+            {!animation && (
+              <label>
+                Sujet de la chronique
+                <input
+                  name="title"
+                  required
+                  maxLength="160"
+                  defaultValue={m.title}
+                />
+              </label>
+            )}
             <label>
               Vitesse de lecture (mots/minute)
               <input

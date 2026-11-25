@@ -387,6 +387,11 @@ button[aria-pressed="true"] {
 [data-kind="end"] {
   --section-color: var(--green);
 }
+[data-kind="opening"],
+[data-kind="transition"],
+[data-kind="closing"] {
+  --section-color: var(--violet);
+}
 [data-tone="rose"] {
   --tone: var(--rose);
 }

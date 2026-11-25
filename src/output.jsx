@@ -75,6 +75,9 @@ function Script({ rows, person, size = 15, onEdit, prompter = false }) {
     </article>
   );
 }
+export function ReadOnlyScript({ rows }) {
+  return <Script rows={rows} />;
+}
 function Prompter({ rows, exit }) {
   const [font, setFont] = useState(38),
     [speed, setSpeed] = useState(36),
@@ -188,13 +191,24 @@ function Prompter({ rows, exit }) {
     </div>
   );
 }
-export function Review({ rows, edit, commit, back }) {
+export function Review({ rows, edit, commit, back, animation }) {
   const [mode, setMode] = useState("review"),
     [person, setPerson] = useState(""),
     [size, setSize] = useState(15),
     [warn, setWarn] = useState(false);
+  const groups = animation
+    ? [
+        {
+          title: "Animation",
+          items: [
+            "Nous avons relu le texte à voix haute.",
+            "Nos annonces correspondent au conducteur de l’émission.",
+          ],
+        },
+      ]
+    : bank.checks;
   const m = rows.meta.data,
-    list = bank.checks.flatMap((g) => g.items),
+    list = groups.flatMap((g) => g.items),
     nr = list.filter((_, i) => rows["check" + i]?.data.checked).length;
   const empty = m.sections.some(
     (s) =>
@@ -253,7 +267,7 @@ export function Review({ rows, edit, commit, back }) {
           <label>
             Corps du texte
             <select value={size} onChange={(e) => setSize(+e.target.value)}>
-              {[14, 15, 16, 18, 20].map((s) => (
+              {[11, 12, 13, 14, 15, 16, 18, 20].map((s) => (
                 <option key={s} value={s}>
                   {s} points
                 </option>
@@ -290,7 +304,7 @@ export function Review({ rows, edit, commit, back }) {
                 Le script contient une section ou une réplique vide.
               </p>
             )}
-            {bank.checks.map((g) => (
+            {groups.map((g) => (
               <fieldset key={g.title}>
                 <legend>{g.title}</legend>
                 {g.items.map((item) => {

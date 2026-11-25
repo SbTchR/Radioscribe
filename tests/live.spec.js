@@ -29,9 +29,9 @@ test("Deux navigateurs, coupure, reprise et conflit sur une même réplique", as
     await expect(a.locator(".code")).toBeVisible();
     const code = await a.locator(".code").innerText();
     await b.goto(baseURL);
-    await btn(b, "Rejoindre une chronique").click();
+    await btn(b, "Rejoindre par un code").click();
     await b.getByLabel("Code de la chronique").fill(code);
-    await btn(b, "Ouvrir la chronique").click();
+    await btn(b, "Rejoindre le groupe").click();
     await btn(b, "Voix B").click();
     await a.getByRole("checkbox", { name: "Amorce", exact: true }).check();
     await expect(

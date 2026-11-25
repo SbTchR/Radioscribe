@@ -7,13 +7,22 @@ Radioscribe accompagne des groupes de deux à quatre élèves dans l’écriture
 ## En classe
 
 1. Sur un premier ordinateur, choisir **Créer une chronique**, donner un titre et entrer les prénoms. L’introduction s’ouvre.
-2. Cliquer sur le code en haut pour le copier. Sur les autres ordinateurs, choisir **Rejoindre une chronique**, entrer le code puis choisir son prénom. Sur un ordinateur partagé, chaque nouvelle réplique peut être attribuée à n’importe quel membre.
+2. Cliquer sur le code à cinq caractères pour le copier. Sur les autres ordinateurs, choisir **Rejoindre par un code**, entrer le code puis choisir son prénom. Sur un ordinateur partagé, chaque nouvelle réplique peut être attribuée à n’importe quel membre.
 3. Cliquer sur un prénom, écrire ou dicter, puis corriger. Les icônes sous chaque réplique permettent de la diviser au curseur, de changer de voix ou de la supprimer. Le **+** ajoute une réplique juste après. Glisser la poignée et déposer sur le trait qui indique la destination. Au clavier, utiliser **↑** et **↓** sur la poignée.
 4. Cocher les pistes rédigées dans la colonne de droite. Ouvrir **SOS rédaction**, choisir une catégorie puis cliquer sur une amorce pour l’insérer au curseur. Sans réplique active, le clic copie l’amorce.
 5. Valider l’introduction et choisir les angles de la première partie. À la fin d’une partie, en ajouter une autre ou ouvrir la conclusion. La barre de structure permet de revenir sur une section validée.
 6. Ouvrir **Relire le script**. Faire la checklist, vérifier la dernière annonce musicale et répéter dans le téléprompteur. Dans **Préparer l’impression**, choisir le script commun, le script d’une personne ou toutes les versions personnalisées. Choisir ensuite l’imprimante ou **Enregistrer au format PDF** dans la fenêtre du navigateur. Désactiver ses en-têtes et pieds de page s’il ajoute l’URL.
 
-Le code donne accès au texte et à sa modification. Il se partage dans le groupe. **Sur cet appareil** désigne un projet local au navigateur. Son code ne donne pas accès depuis un autre ordinateur. Les projets locaux et les brouillons en attente dépendent des données de site de ce navigateur.
+Le code donne accès au texte et à sa modification. Il se partage dans le groupe. Les invitations déjà distribuées restent utilisables. Les nouveaux scripts sont calculés à 170 mots par minute et les réglages de lecture déjà enregistrés sont conservés. L’aperçu d’impression accepte notamment les corps 11, 12 et 13 points. **Sur cet appareil** désigne un projet local au navigateur.
+
+## Préparer une émission complète
+
+1. Choisir **Créer une émission**, donner son titre, indiquer le nombre de chroniques et choisir si l’émission est animée. Le conducteur prépare les jingles, les musiques, les chroniques et les séquences d’animation demandées.
+2. Attribuer les équipes en ouvrant **Modifier** sur les chroniques et les séquences d’animation. Donner un titre et une durée aux musiques et aux jingles. Utiliser **Ajouter une partie** et les flèches pour adapter l’ordre. Une partie retirée peut être rétablie depuis le conducteur.
+3. Conserver le **Lien de gestion** pour reprendre l’émission sur un autre navigateur. Partager chaque code à cinq caractères uniquement avec l’équipe qui rédige la chronique ou la séquence. Les équipes retrouvent les autres textes en lecture seule dans le conducteur.
+4. Ouvrir une partie pour écrire, suivre les durées estimées ou donner des retours. L’enseignant peut utiliser **Messages à l’équipe** ou l’icône de commentaire sous une réplique. Un retour marqué important déclenche une alerte en haut de l’éditeur de l’équipe.
+
+Le conducteur des émissions partagées utilise Supabase. Les durées de chroniques et d’animations sont estimées à partir des répliques enregistrées. Les jingles et les morceaux sont renseignés en minutes et secondes.
 
 ## Dictée et essai sur les MacBook
 

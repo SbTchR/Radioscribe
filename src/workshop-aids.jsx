@@ -18,10 +18,11 @@ import {
   UsersRound,
 } from "lucide-react";
 import bank from "./atelier.json";
+import { animationGuides } from "./animation.js";
 import { colors, time } from "./domain.js";
 import { Modal, Voice } from "./ui.jsx";
 
-export function SpeakingTime({ timing, speed }) {
+export function SpeakingTime({ timing, speed, animation }) {
   return (
     <section className="meter" aria-label="Temps de parole estimé">
       <div className="meter-captions">
@@ -30,7 +31,8 @@ export function SpeakingTime({ timing, speed }) {
           <b>{time(timing.section)}</b>
         </span>
         <span>
-          Chronique entière <b>{time(timing.total)}</b>
+          {animation ? "Séquence" : "Chronique entière"}{" "}
+          <b>{time(timing.total)}</b>
         </span>
       </div>
       <div className="bar" aria-hidden="true">
@@ -68,7 +70,8 @@ export function WritingGuides({
 }) {
   const [pending, setPending] = useState({});
   const { kind, angles } = section;
-  const source = kind === "part" ? bank.angles : bank[kind];
+  const source =
+    kind === "part" ? bank.angles : animationGuides[kind] || bank[kind];
   const indices = kind === "part" ? angles : source.map((_, i) => i);
   const guides = indices.map((i) => ({
     ...source[i],

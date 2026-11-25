@@ -1,0 +1,287 @@
+.program-mode,
+.program-duration,
+.cue-team,
+.program-reading-tools > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.program-mode {
+  margin-inline-start: auto;
+  color: #65409a;
+  font-size: 0.9rem;
+  font-weight: 720;
+}
+.program {
+  width: min(1360px, 100%);
+  margin: auto;
+  padding: 35px clamp(16px, 4vw, 60px) 60px;
+}
+.program-head,
+.program-list-head,
+.program-reading-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.program-head {
+  margin-bottom: 29px;
+}
+.program-head h1 {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: clamp(2.8rem, 6vw, 5.1rem);
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+.program-duration {
+  margin-top: 10px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.program-duration svg,
+.program-duration strong {
+  color: var(--violet);
+}
+.program-list-head {
+  border-top: 1px solid var(--line);
+  padding: 16px 0;
+}
+.program-list-head h2 {
+  font-size: 1.3rem;
+  letter-spacing: -0.03em;
+}
+.cue-list {
+  --cue-actions-width: 215px;
+  list-style: none;
+  display: grid;
+  gap: 9px;
+  padding: 0;
+  margin: 0;
+}
+.cue-list[data-manager="true"] {
+  --cue-actions-width: 348px;
+}
+.cue-card {
+  --cue-color: var(--violet);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 120px var(--cue-actions-width);
+  align-items: center;
+  gap: clamp(9px, 1.8vw, 25px);
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--cue-color) 24%, #fffefa);
+  border-left: 4px solid var(--cue-color);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--cue-color) 4%, #fffefa);
+}
+.cue-card[data-kind="chronicle"] {
+  --cue-color: var(--accent);
+}
+.cue-card[data-kind="music"] {
+  --cue-color: var(--blue);
+}
+.cue-card[data-kind="jingle"] {
+  --cue-color: var(--ochre);
+}
+.cue-position {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--cue-color);
+}
+.cue-position > span {
+  min-width: 1.4rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-size: 0.81rem;
+}
+.cue-position > svg {
+  border-radius: 7px;
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--cue-color) 10%, #fffefa);
+  margin-inline-end: 6px;
+}
+.cue-name small {
+  color: var(--cue-color);
+  font-weight: 720;
+}
+.cue-name h3 {
+  font-size: 1.08rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.cue-title {
+  border: 0;
+  background: none;
+  min-height: 0;
+  padding: 0;
+  justify-content: start;
+  font-size: inherit;
+  font-weight: 770;
+  text-align: left;
+}
+.cue-title:hover {
+  background: none;
+  color: var(--cue-color);
+  text-decoration: underline;
+}
+.cue-team {
+  gap: 5px;
+  margin-top: 3px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.cue-team svg {
+  flex: 0 0 auto;
+}
+.cue-timing {
+  display: grid;
+  justify-items: start;
+  gap: 3px;
+}
+.cue-state {
+  border-radius: 6px;
+  padding: 3px 6px;
+  background: #eee9dc;
+  color: #594c3a;
+  font-size: 0.74rem;
+  font-weight: 730;
+}
+.cue-state[data-state="draft"] {
+  background: #e5ecf8;
+  color: #254b73;
+}
+.cue-state[data-state="ready"] {
+  background: #e7f2e8;
+  color: #366a4c;
+}
+.cue-seconds {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.cue-actions,
+.cue-management {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.cue-actions {
+  justify-content: end;
+}
+.cue-actions > button {
+  padding-inline: 8px;
+  min-height: 34px;
+  font-size: 0.81rem;
+}
+.cue-code {
+  color: var(--cue-color);
+  letter-spacing: 0.07em;
+  border-color: color-mix(in srgb, var(--cue-color) 24%, white);
+}
+.cue-open svg {
+  width: 14px;
+}
+.cue-management {
+  border-inline-start: 1px solid var(--line);
+  padding-inline-start: 6px;
+}
+.cue-management button {
+  min-width: 30px;
+}
+.cue-management button svg {
+  width: 15px;
+}
+.archive-button {
+  color: var(--rose);
+}
+.cue-archive {
+  margin-top: 18px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 12px;
+}
+.cue-archive summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+.cue-archive > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+.duration-field label {
+  display: inline-block;
+  width: min(120px, 43%);
+  margin: 0 9px 0 0;
+}
+.program-reading {
+  padding: 20px max(3vw, 15px);
+}
+.program-reading-tools {
+  max-width: 210mm;
+  margin: 0 auto 16px;
+}
+.program-reading-tools span {
+  color: var(--violet);
+  font-size: 0.85rem;
+  font-weight: 710;
+}
+.program-home-action {
+  margin-top: 10px;
+}
+.program-recent .projectrow svg:first-child {
+  color: var(--violet);
+}
+@media (max-width: 900px) {
+  .cue-card {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .cue-actions {
+    grid-column: 2 / -1;
+    justify-content: start;
+  }
+  .program-head {
+    margin-bottom: 18px;
+  }
+}
+@media (max-width: 450px) {
+  .program {
+    padding-top: 23px;
+  }
+  .program-mode {
+    font-size: 0.78rem;
+  }
+  .cue-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 9px;
+    gap: 7px 12px;
+  }
+  .cue-timing {
+    grid-column: 2;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .cue-management {
+    padding-inline-start: 0;
+    border: 0;
+  }
+  .cue-position {
+    align-self: start;
+    gap: 6px;
+    margin-top: 8px;
+  }
+}
+@media print {
+  .program-reading-tools {
+    display: none;
+  }
+}

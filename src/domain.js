@@ -1,5 +1,16 @@
 // A transaction contains the records it changes and the exact revisions it read.
 export const uid = () => crypto.randomUUID();
+export const DEFAULT_READING_SPEED = 170;
+export const CODE_LENGTH = 5;
+export const CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+export function shortCode() {
+  return Array.from(
+    crypto.getRandomValues(new Uint8Array(CODE_LENGTH)),
+    (byte) => CODE_ALPHABET[byte & 31],
+  ).join("");
+}
+export const normalizeCode = (value) =>
+  value.toUpperCase().replace(/[\s-]/g, "");
 export const colors = ["#a33c33", "#286880", "#77539a", "#446c38"];
 export const time = (seconds) =>
   Math.floor(seconds / 60) +
@@ -18,7 +29,7 @@ export function initial(title, names) {
       title: title.trim(),
       people,
       sections: ["intro"],
-      speed: 130,
+      speed: DEFAULT_READING_SPEED,
     }),
     intro: record({
       kind: "intro",

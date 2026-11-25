@@ -42,6 +42,8 @@ test("Du dialogue à la répétition et au PDF personnalisé", async ({
   page,
 }, info) => {
   await create(page);
+  await expect(page.locator(".code")).toHaveText(/^[2-9A-HJ-NP-Z]{5}\s*$/);
+  await expect(page.locator(".meter")).toContainText("170 mots/min");
   const guides = page.getByRole("complementary", {
     name: "Pistes de rédaction",
   });
@@ -108,6 +110,14 @@ test("Du dialogue à la répétition et au PDF personnalisé", async ({
     .getByRole("combobox", { name: "Version", exact: true })
     .selectOption("all");
   await expect(page.locator(".script")).toHaveCount(2);
+  const typeSize = page.getByRole("combobox", { name: "Corps du texte" });
+  for (const size of [11, 12, 13]) {
+    await typeSize.selectOption(String(size));
+    await expect(page.locator(".script").first()).toHaveAttribute(
+      "style",
+      new RegExp(size + "pt"),
+    );
+  }
   await btn(page, "Imprimer / Enregistrer en PDF").click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await btn(page, "Revenir au script").click();
@@ -117,7 +127,7 @@ test("Du dialogue à la répétition et au PDF personnalisé", async ({
     printBackground: true,
   });
   await page.reload();
-  await btn(page, "Ouvrir la chronique").click();
+  await btn(page, "Rejoindre le groupe").click();
   await btn(page, "Noah").click();
   await expect(amorce).toBeChecked();
   await btn(page, "Relire le script").click();
