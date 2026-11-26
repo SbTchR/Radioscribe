@@ -22,7 +22,7 @@ self.onmessage = async ({ data }) => {
         const adapter = await navigator.gpu?.requestAdapter();
         if (!adapter?.features.has("shader-f16"))
           throw Error(
-            "Turbo nécessite le calcul 16 bits de WebGPU. Le bouton « Transcription trop lente / bug » permet de passer à Small.",
+            "Ce modèle demande le calcul 16 bits de WebGPU. Essaie « Moyen et moyen » avec le bouton « Transcription trop lente / bug ».",
           );
       }
       let last = 0;

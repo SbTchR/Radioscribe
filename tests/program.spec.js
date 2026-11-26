@@ -178,15 +178,23 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
 
     await joinGroup(pupil, baseURL, code, "Alice");
     await joinGroup(partner, baseURL, code, "Benoît");
-    await expect(pupil.locator(".meter")).toContainText("170 mots/min");
-    await expect(pupil.locator(".speechstate")).toContainText("Large v3 Turbo");
+    await button(pupil, "Réglages").click();
+    const pupilSettings = pupil.getByRole("dialog", {
+      name: "Réglages de l’atelier",
+    });
+    await expect(
+      pupilSettings.getByLabel("Vitesse de lecture (mots/minute)"),
+    ).toHaveCount(0);
+    await expect(
+      pupilSettings.getByLabel("Modèle de transcription").locator("option"),
+    ).toHaveText(["Bon et lent", "Moyen et moyen", "Moins bon et rapide"]);
+    await button(pupilSettings, "Fermer").click();
+    await expect(pupil.locator(".speechstate")).toContainText("Bon et lent");
     await expect(button(pupil, betterTranscription)).toHaveCount(0);
     await button(pupil, "Transcription trop lente / bug").click();
-    await expect(pupil.locator(".speechstate")).toContainText(
-      "Small multilingue",
-    );
+    await expect(pupil.locator(".speechstate")).toContainText("Moyen et moyen");
     await button(pupil, betterTranscription).click();
-    await expect(pupil.locator(".speechstate")).toContainText("Large v3 Turbo");
+    await expect(pupil.locator(".speechstate")).toContainText("Bon et lent");
     await button(pupil, "Transcription trop lente / bug").click();
     await writeReply(
       pupil,
@@ -267,11 +275,11 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
     await button(pupilDiscussion, "Transcription trop lente / bug").click();
     await expect(
       pupilDiscussion.locator(".message-dictation-status"),
-    ).toContainText("Base multilingue");
+    ).toContainText("Moins bon et rapide");
     await button(pupilDiscussion, betterTranscription).click();
     await expect(
       pupilDiscussion.locator(".message-dictation-status"),
-    ).toContainText("Small multilingue");
+    ).toContainText("Moyen et moyen");
     await button(pupilDiscussion, "Transcription trop lente / bug").click();
     await button(pupilDiscussion, "Dicter le message").click();
     await expect(
@@ -428,6 +436,20 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
       0,
     );
     await button(prof, "Rédiger Prise d’antenne").click();
+    await button(prof, "Réglages").click();
+    const teacherSettings = prof.getByRole("dialog", {
+      name: "Réglages de l’atelier",
+    });
+    const teacherSpeed = teacherSettings.getByLabel(
+      "Vitesse de lecture (mots/minute)",
+    );
+    await expect(teacherSpeed).toHaveValue("170");
+    await teacherSpeed.fill("150");
+    await button(teacherSettings, "Appliquer au projet").click();
+    await expect(prof.locator(".save")).toHaveText("Sauvegardé");
+    await button(prof, "Réglages").click();
+    await expect(teacherSpeed).toHaveValue("150");
+    await button(teacherSettings, "Fermer").click();
     await expect(
       prof.getByRole("checkbox", { name: "Amorce de l’émission", exact: true }),
     ).toBeVisible();

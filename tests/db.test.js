@@ -354,6 +354,14 @@ test("Conducteur complet, accès cloisonnés, progression et retours enseignants
       (await rpc("read", themed.room)).rows.meta.data.title,
       "Chronique 2",
     );
+    const teacherRoom = await rpc("read", themed.room);
+    assert.equal(
+      await tx(themed.room, teacherRoom.rows, {
+        meta: { ...teacherRoom.rows.meta.data, speed: 150 },
+      }),
+      "ok",
+    );
+    assert.equal((await rpc("read", themed.room)).rows.meta.data.speed, 150);
 
     await who(outsider);
     assert.equal(await rpc("program_read", show), null);
@@ -362,6 +370,20 @@ test("Conducteur complet, accès cloisonnés, progression et retours enseignants
 
     await who(student);
     assert.equal(await rpc("join", first.code), first.room);
+    const standalone = await rpc("read", old.id);
+    assert.equal(
+      await tx(old.id, standalone.rows, {
+        meta: {
+          ...standalone.rows.meta.data,
+          title: "Titre corrigé",
+          speed: 150,
+        },
+      }),
+      "ok",
+    );
+    const standaloneMeta = (await rpc("read", old.id)).rows.meta.data;
+    assert.equal(standaloneMeta.title, "Titre corrigé");
+    assert.equal(standaloneMeta.speed, 130);
     const studentProgram = await rpc("program_read", show);
     const firstView = studentProgram.items.find((i) => i.id === first.id);
     const secondView = studentProgram.items.find((i) => i.id === second.id);
@@ -454,12 +476,13 @@ test("Conducteur complet, accès cloisonnés, progression et retours enseignants
     );
     assert.equal(
       await tx(first.room, own.rows, {
-        meta: { ...own.rows.meta.data, people: renamedPeople },
+        meta: { ...own.rows.meta.data, people: renamedPeople, speed: 120 },
       }),
       "ok",
     );
     const renamedDoc = await rpc("read", first.room);
     assert.deepEqual(renamedDoc.rows.meta.data.people, renamedPeople);
+    assert.equal(renamedDoc.rows.meta.data.speed, 170);
     assert.equal(renamedDoc.rows[block.id].data.speaker, originalPeople[0].id);
     assert.equal(renamedDoc.code, first.code);
     assert.deepEqual(

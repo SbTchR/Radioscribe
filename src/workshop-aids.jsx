@@ -4,6 +4,7 @@ import {
   AudioLines,
   BookOpen,
   Check,
+  ChevronLeft,
   ChevronRight,
   CircleHelp,
   Clock3,
@@ -22,7 +23,7 @@ import { animationGuides } from "./animation.js";
 import { colors, time } from "./domain.js";
 import { Modal, Voice } from "./ui.jsx";
 
-export function SpeakingTime({ timing, speed, animation }) {
+export function SpeakingTime({ timing, animation }) {
   return (
     <section className="meter" aria-label="Temps de parole estimé">
       <div className="meter-captions">
@@ -53,12 +54,61 @@ export function SpeakingTime({ timing, speed, animation }) {
           </div>
         ))}
       </div>
-      <small>À {speed} mots/min, hors musique et pauses.</small>
     </section>
   );
 }
 
 export const guidePrefix = (sectionId) => "guide:" + sectionId + ":";
+
+function GuideExamples({ title, phrases, active, insertPhrase }) {
+  const [index, setIndex] = useState(0);
+  const count = phrases.length;
+  if (!count) return null;
+  const phrase = phrases[index];
+  const PhraseIcon = active ? Plus : Copy;
+  const move = (step) =>
+    setIndex((current) => (current + step + count) % count);
+  return (
+    <div
+      className="guide-examples"
+      role="group"
+      aria-label={"Exemples pour " + title}
+    >
+      <button
+        type="button"
+        className="guide-phrase"
+        title={active ? "Insérer au curseur" : "Copier dans le presse-papiers"}
+        onClick={() => insertPhrase(phrase)}
+      >
+        <span aria-live="polite" aria-atomic="true">
+          {phrase}
+        </span>
+        <PhraseIcon size={15} aria-hidden="true" />
+      </button>
+      {count > 1 && (
+        <div className="guide-example-nav">
+          <button
+            type="button"
+            aria-label="Exemple précédent"
+            onClick={() => move(-1)}
+          >
+            <ChevronLeft aria-hidden="true" />
+          </button>
+          <span>
+            {index + 1} / {count}
+          </span>
+          <button
+            type="button"
+            aria-label="Exemple suivant"
+            onClick={() => move(1)}
+          >
+            <ChevronRight aria-hidden="true" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function WritingGuides({
   sectionId,
@@ -79,7 +129,6 @@ export function WritingGuides({
   }));
   const isChecked = (key) => pending[key] ?? !!rows[key]?.data.checked;
   const completed = guides.filter((guide) => isChecked(guide.key)).length;
-  const PhraseIcon = active ? Plus : Copy;
   async function toggle(key, checked) {
     if (key in pending) return;
     setPending((current) => ({ ...current, [key]: checked }));
@@ -111,9 +160,6 @@ export function WritingGuides({
             {completed} / {guides.length}
           </span>
         </div>
-        <p className="guide-instruction">
-          Coche les pistes que tu as rédigées.
-        </p>
         {kind === "part" && (
           <p className="guide-note">
             Vérifiez vos faits, chiffres et témoignages dans vos sources.
@@ -139,22 +185,12 @@ export function WritingGuides({
                   {title}
                 </label>
                 {help && <p>{help}</p>}
-                {phrases.map((phrase) => (
-                  <button
-                    type="button"
-                    className="guide-phrase"
-                    key={phrase}
-                    title={
-                      active
-                        ? "Insérer au curseur"
-                        : "Copier dans le presse-papiers"
-                    }
-                    onClick={() => insertPhrase(phrase)}
-                  >
-                    <span>{phrase}</span>
-                    <PhraseIcon size={15} aria-hidden="true" />
-                  </button>
-                ))}
+                <GuideExamples
+                  title={title}
+                  phrases={phrases}
+                  active={active}
+                  insertPhrase={insertPhrase}
+                />
               </li>
             );
           })}

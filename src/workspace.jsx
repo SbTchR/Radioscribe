@@ -10,7 +10,6 @@ import {
   ArrowRight,
   BookOpen,
   CheckCheck,
-  ChevronRight,
   Copy,
   Ellipsis,
   FileText,
@@ -227,6 +226,7 @@ export function Workspace({
   const { rows, context } = snapshot,
     m = rows.meta.data;
   const animation = Object.hasOwn(animationGuides, context?.kind);
+  const canAdjustReadingSpeed = context?.manager === true;
   const feedback = context?.showId ? feedbackEntries(rows) : [];
   const [, refresh] = useReducer((x) => x + 1, 0);
   const [drafts] = useState(() => new Drafts(room, refresh));
@@ -738,7 +738,7 @@ export function Workspace({
             </button>
           )}
           <h3>Structure</h3>
-          <nav>
+          <nav aria-label="Structure du script">
             {m.sections.map((k) => (
               <button
                 key={k}
@@ -749,7 +749,6 @@ export function Workspace({
               >
                 {rows[k].data.done ? <CheckCheck /> : <FileText />}
                 <span>{sectionName(m, k, rows[k].data)}</span>
-                <ChevronRight size={14} />
               </button>
             ))}
           </nav>
@@ -787,17 +786,7 @@ export function Workspace({
             </button>
           )}
           <div className="sectionhead">
-            <div>
-              <small className="breadcrumb">
-                Rédaction <ChevronRight size={12} />{" "}
-                {animation
-                  ? "Animation"
-                  : s.kind === "part"
-                    ? "Développement"
-                    : s.title}
-              </small>
-              <h1>{display}</h1>
-            </div>
+            <h1>{display}</h1>
             <div className="actions">
               <span className="statuspill" data-done={s.done}>
                 {s.done ? "Validée" : "En rédaction"}
@@ -813,7 +802,7 @@ export function Workspace({
               )}
             </div>
           </div>
-          <SpeakingTime timing={timing} speed={m.speed} animation={animation} />
+          <SpeakingTime timing={timing} animation={animation} />
           {feedbackPanel}
           <div className="dialoguehead">
             <div className="dialogue-label">
@@ -1213,52 +1202,55 @@ export function Workspace({
       )}
       {modal === "settings" && (
         <Modal title="Réglages de l’atelier" close={() => setModal("")}>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const f = new FormData(e.target);
-              action(async (r) => {
-                if (
-                  await commit(
-                    {
-                      meta: {
-                        ...r.meta.data,
-                        title: f.get("title")?.trim() || r.meta.data.title,
-                        speed: +f.get("speed"),
-                      },
-                    },
-                    "Réglages du projet",
-                  )
-                )
-                  setModal("");
-              });
-            }}
-          >
-            {!animation && (
-              <label>
-                Sujet de la chronique
-                <input
-                  name="title"
-                  required
-                  maxLength="160"
-                  defaultValue={m.title}
-                />
-              </label>
-            )}
-            <label>
-              Vitesse de lecture (mots/minute)
-              <input
-                type="number"
-                name="speed"
-                min="100"
-                max="180"
-                required
-                defaultValue={m.speed}
-              />
-            </label>
-            <button>Appliquer au projet</button>
-          </form>
-          <hr />
+          {(!animation || canAdjustReadingSpeed) && (
+            <>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const fields = new FormData(e.currentTarget);
+                  action(async (r) => {
+                    const meta = { ...r.meta.data };
+                    if (!animation) {
+                      meta.title = fields.get("title").trim() || meta.title;
+                    }
+                    if (canAdjustReadingSpeed) {
+                      meta.speed = Number(fields.get("speed"));
+                    }
+                    if (await commit({ meta }, "Réglages du projet")) {
+                      setModal("");
+                    }
+                  });
+                }}
+              >
+                {!animation && (
+                  <label>
+                    Sujet de la chronique
+                    <input
+                      name="title"
+                      required
+                      maxLength={160}
+                      defaultValue={m.title}
+                    />
+                  </label>
+                )}
+                {canAdjustReadingSpeed && (
+                  <label>
+                    Vitesse de lecture (mots/minute)
+                    <input
+                      type="number"
+                      name="speed"
+                      min={100}
+                      max={180}
+                      required
+                      defaultValue={m.speed}
+                    />
+                  </label>
+                )}
+                <button>Appliquer au projet</button>
+              </form>
+              <hr />
+            </>
+          )}
           <h3>Dictée sur cet appareil</h3>
           <label>
             Modèle de transcription

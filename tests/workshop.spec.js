@@ -56,7 +56,24 @@ test("Du dialogue à la répétition et au PDF personnalisé", async ({
 }, info) => {
   await create(page);
   await expect(page.locator(".code")).toHaveText(/^[2-9A-HJ-NP-Z]{5}\s*$/);
-  await expect(page.locator(".meter")).toContainText("170 mots/min");
+  await expect(page.locator(".meter")).not.toContainText("mots/min");
+  await page.setViewportSize({ width: 1060, height: 900 });
+  const intro = btn(
+    page.getByRole("navigation", { name: "Structure du script" }),
+    "Introduction",
+  );
+  await expect(intro).toBeVisible();
+  expect(
+    await intro.locator("span").evaluate((text) => {
+      const range = document.createRange();
+      range.selectNodeContents(text);
+      return (
+        range.getClientRects().length === 1 &&
+        text.scrollWidth <= text.clientWidth
+      );
+    }),
+  ).toBe(true);
+  await page.setViewportSize({ width: 1440, height: 900 });
   const guides = page.getByRole("complementary", {
     name: "Pistes de rédaction",
   });
@@ -64,6 +81,25 @@ test("Du dialogue à la répétition et au PDF personnalisé", async ({
   await expect(
     guides.getByText("Comment donner envie d'écouter ?"),
   ).toBeVisible();
+  await expect(
+    guides.getByText("Coche les pistes que tu as rédigées."),
+  ).toHaveCount(0);
+  const examples = guides.getByRole("group", {
+    name: "Exemples pour Amorce",
+    exact: true,
+  });
+  await expect(examples.locator(".guide-phrase")).toHaveText(
+    "Saviez-vous que… ?",
+  );
+  await btn(examples, "Exemple suivant").press("Enter");
+  await expect(examples.locator(".guide-phrase")).toHaveText(
+    "Imaginez un instant…",
+  );
+  await btn(examples, "Exemple précédent").click();
+  await btn(examples, "Exemple précédent").click();
+  await expect(examples.locator(".guide-phrase")).toHaveText(
+    "Vous êtes-vous déjà demandé pourquoi… ?",
+  );
   await amorce.check();
   await add(page, "Léa", "Bonjour. Voici notre sujet.");
   const text = page.getByRole("textbox", { name: "Réplique 1 de Léa" });
@@ -160,6 +196,20 @@ test("Accueil mobile et création à quatre", async ({ page }) => {
     page.getByRole("heading", { name: "Pistes de rédaction" }),
   ).toBeInViewport();
   await expect(page.locator(".meter")).toContainText("100 %");
+  const examples = page.getByRole("group", {
+    name: "Exemples pour Amorce",
+    exact: true,
+  });
+  await btn(examples, "Exemple suivant").click();
+  await btn(examples, "Imaginez un instant…").click();
+  await expect(
+    page.getByRole("textbox", { name: "Réplique 1 de Ali" }),
+  ).toHaveValue("À vous les studios ! Imaginez un instant…");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
 });
 
 test("Poignée à la souris et au clavier, réattribution et suppression directe", async ({

@@ -11,7 +11,7 @@ export function shortCode() {
 }
 export const normalizeCode = (value) =>
   value.toUpperCase().replace(/[\s-]/g, "");
-export const colors = ["#a33c33", "#286880", "#77539a", "#446c38"];
+export const colors = ["#a02133", "#17469e", "#00604b", "#774100"];
 export const time = (seconds) =>
   Math.floor(seconds / 60) +
   " min " +

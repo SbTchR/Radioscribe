@@ -9,11 +9,11 @@ Radioscribe accompagne des groupes de deux à quatre élèves dans l’écriture
 1. Sur un premier ordinateur, choisir **Créer une chronique**, donner un titre et entrer les prénoms. L’introduction s’ouvre.
 2. Cliquer sur le code à cinq caractères pour le copier. Sur les autres ordinateurs, choisir **Rejoindre par un code**, entrer le code puis choisir son prénom. Sur un ordinateur partagé, chaque nouvelle réplique peut être attribuée à n’importe quel membre.
 3. Cliquer sur un prénom, écrire ou dicter, puis corriger. Les icônes sous chaque réplique permettent de la diviser au curseur, de changer de voix ou de la supprimer. Le **+** ajoute une réplique juste après. Glisser la poignée et déposer sur le trait qui indique la destination. Au clavier, utiliser **↑** et **↓** sur la poignée.
-4. Cocher les pistes rédigées dans la colonne de droite. Ouvrir **SOS rédaction**, choisir une catégorie puis cliquer sur une amorce pour l’insérer au curseur. Sans réplique active, le clic copie l’amorce.
+4. Cocher les pistes rédigées dans la colonne de droite. Les flèches font défiler les exemples de chaque piste. Cliquer sur un exemple l’insère au curseur ou le copie si aucune réplique n’est active. **SOS rédaction** propose d’autres amorces par catégorie.
 5. Valider l’introduction et choisir les angles de la première partie. À la fin d’une partie, en ajouter une autre ou ouvrir la conclusion. La barre de structure permet de revenir sur une section validée.
 6. Ouvrir **La chronique est prête**. Faire la checklist, vérifier la dernière annonce musicale et répéter dans le téléprompteur. Dans **Préparer l’impression**, choisir le script commun, le script d’une personne ou toutes les versions personnalisées. Choisir ensuite l’imprimante ou **Enregistrer au format PDF** dans la fenêtre du navigateur. Désactiver ses en-têtes et pieds de page s’il ajoute l’URL.
 
-Le code donne accès au texte et à sa modification. Il se partage dans le groupe. Les invitations déjà distribuées restent utilisables. Les nouveaux scripts sont calculés à 170 mots par minute et les réglages de lecture déjà enregistrés sont conservés. L’aperçu d’impression accepte notamment les corps 11, 12 et 13 points. **Sur cet appareil** désigne un projet local au navigateur.
+Le code donne accès au texte et à sa modification. Il se partage dans le groupe. Les invitations déjà distribuées restent utilisables. L’estimation des nouveaux scripts part de 170 mots par minute. L’enseignant qui gère une émission peut ajuster cette vitesse dans les réglages de l’atelier. L’aperçu d’impression accepte notamment les corps 11, 12 et 13 points. **Sur cet appareil** désigne un projet local au navigateur.
 
 ## Préparer une émission complète
 
@@ -31,7 +31,7 @@ Dans l’éditeur, cliquer sur un prénom pour le corriger. Les textes déjà at
 
 À l’entrée dans l’atelier, un worker prépare **Whisper Large v3 Turbo**. Il télécharge depuis Hugging Face les poids ONNX épinglés dans `src/models.js`. Prévoir un premier chargement volumineux (plus d’un Go pour Turbo). La progression indique des octets par fichier. Le navigateur peut réutiliser son cache selon l’espace disponible. Le clavier est disponible pendant le téléchargement.
 
-Turbo utilise WebGPU, un encodeur FP16 et un décodeur Q4. **Transcription trop lente / bug** passe à **Small**, puis à **Base** si le problème continue. **Meilleure transcription (mais plus lente)** remonte de **Base** à **Small**, puis de **Small** à **Turbo**. Le choix est mémorisé sur l’appareil. Les modèles Small et Base, multilingues et quantifiés Q8, fonctionnent sur CPU/WASM. Les échantillons mono à 16 kHz transitent entre l’AudioWorklet et le worker local. Après **Arrêter et transcrire**, le texte proposé peut être accepté ou annulé. Les pistes micro sont fermées à l’arrêt, à l’annulation ou à la sortie.
+L’interface appelle ces trois modèles **Bon et lent** (Turbo), **Moyen et moyen** (Small) et **Moins bon et rapide** (Base). **Transcription trop lente / bug** passe au modèle plus léger. **Meilleure transcription (mais plus lente)** remonte d’un cran. Le choix est mémorisé sur l’appareil. Turbo utilise WebGPU, un encodeur FP16 et un décodeur Q4. Small et Base, multilingues et quantifiés Q8, fonctionnent sur CPU/WASM. Les échantillons mono à 16 kHz transitent entre l’AudioWorklet et le worker local. Après **Arrêter et transcrire**, le texte proposé peut être accepté ou annulé. Les pistes micro sont fermées à l’arrêt, à l’annulation ou à la sortie.
 
 Pour évaluer les machines de l’école :
 

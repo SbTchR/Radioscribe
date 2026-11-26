@@ -69,7 +69,6 @@ export function Modal({
 export function Voice({ name, color }) {
   return (
     <span className="voice" style={{ "--voice": color }}>
-      <i />
       {name}
     </span>
   );

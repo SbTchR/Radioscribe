@@ -34,8 +34,10 @@ export function loadModel(model = state.model) {
   update({
     model,
     phase: "loading",
-    message: "Préparation de " + models[model].label,
+    message: "Chargement du modèle…",
     seconds: 0,
+    loadMs: 0,
+    inferenceMs: 0,
     result: null,
     target: null,
   });
@@ -54,8 +56,7 @@ export function loadModel(model = state.model) {
       if (d.type === "progress")
         update({
           message:
-            (d.file || "Modèle") +
-            " · " +
+            "Chargement · " +
             Math.round(d.loaded / 1e6) +
             " Mo" +
             (d.total ? " / " + Math.round(d.total / 1e6) + " Mo" : ""),

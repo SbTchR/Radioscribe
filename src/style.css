@@ -98,8 +98,7 @@ h3,
 p {
   margin: 0;
 }
-small,
-.breadcrumb {
+small {
   font-size: 0.78rem;
   color: var(--muted);
 }
@@ -355,8 +354,7 @@ button[aria-pressed="true"] {
   align-items: center;
   gap: 7px;
 }
-.save i,
-.voice i {
+.save i {
   display: inline-block;
   width: 8px;
   height: 8px;
@@ -368,11 +366,18 @@ button[aria-pressed="true"] {
   font-variant-numeric: tabular-nums;
 }
 .workspace {
+  --editor-surface: #fffefa;
+  --rail-surface: #f1f3f7;
+  --ink: #1c2534;
+  --muted: #485569;
+  --line: #c7ced8;
+  color: var(--ink);
+  background: var(--editor-surface);
   display: grid;
-  grid-template-columns: clamp(174px, 15vw, 224px) minmax(0, 1fr) clamp(
-      292px,
-      28vw,
-      398px
+  grid-template-columns: clamp(202px, 16vw, 236px) minmax(0, 1fr) clamp(
+      298px,
+      27vw,
+      390px
     );
   max-width: 1660px;
   margin: auto;
@@ -411,8 +416,9 @@ button[aria-pressed="true"] {
   --tone: var(--indigo);
 }
 .sidebar {
-  padding: 30px 20px;
-  background: #f3f0e8;
+  min-width: 0;
+  padding: 26px clamp(14px, 1.4vw, 22px);
+  background: var(--rail-surface);
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -423,6 +429,9 @@ button[aria-pressed="true"] {
   letter-spacing: -0.05em;
   overflow-wrap: anywhere;
   margin: 8px 0 12px;
+}
+.sidebar hr {
+  margin-block: 16px;
 }
 .sidebar h3,
 .dialoguehead h3 {
@@ -440,17 +449,13 @@ button[aria-pressed="true"] {
   gap: 5px 8px;
 }
 .voice {
-  background: color-mix(in srgb, var(--voice) 8%, white);
-  color: var(--voice);
+  background: var(--voice);
+  color: white;
   padding: 3px 7px;
   border-radius: 5px;
   font-size: 0.83rem;
   font-weight: 750;
-}
-.voice i {
-  background: var(--voice);
-  width: 7px;
-  height: 7px;
+  overflow-wrap: anywhere;
 }
 .online {
   font-size: 8px;
@@ -481,20 +486,35 @@ button[aria-pressed="true"] {
   justify-content: flex-start;
   text-align: left;
 }
+.sidebar nav button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  padding-inline: 9px;
+}
 .sidebar nav button span {
-  flex: 1;
+  min-width: 0;
   overflow-wrap: anywhere;
 }
 .sidebar nav button > svg:first-child {
+  width: 17px;
   color: var(--section-color);
 }
-.sidebar nav .current {
-  color: var(--section-color);
-  background: color-mix(in srgb, var(--section-color) 13%, white);
+.reviewlink {
+  border: 1px solid #a7b2c2;
+  background: var(--editor-surface);
 }
 .sidebar nav button:hover,
 .reviewlink:hover {
-  background: #eae5d9;
+  background: #e1e6ee;
+}
+.sidebar nav .current,
+.sidebar nav .current:hover {
+  color: white;
+  background: #26354d;
+}
+.sidebar nav .current > svg:first-child {
+  color: inherit;
 }
 .sidebarbottom {
   padding-top: 20px;
@@ -503,7 +523,7 @@ button[aria-pressed="true"] {
   font-size: 0.78rem;
 }
 .editor {
-  padding: clamp(20px, 3vw, 52px);
+  padding: clamp(20px, 2.6vw, 42px);
   min-width: 0;
 }
 .editor h1 {
@@ -514,14 +534,10 @@ button[aria-pressed="true"] {
   line-height: 1.03;
   overflow-wrap: anywhere;
 }
-.breadcrumb,
 .speechstate {
   display: flex;
   align-items: center;
   gap: 7px;
-}
-.breadcrumb {
-  color: var(--section-color);
 }
 .statuspill {
   font-size: 0.75rem;
@@ -543,7 +559,7 @@ button[aria-pressed="true"] {
   margin: 8px 0 12px;
   padding: 12px 0;
   border-bottom: 1px solid var(--line);
-  background: var(--paper);
+  background: var(--editor-surface);
 }
 .dialogue-label {
   display: flex;
@@ -594,8 +610,8 @@ button[aria-pressed="true"] {
 .addline button {
   padding: 5px 8px;
   color: var(--voice);
-  border-color: color-mix(in srgb, var(--voice) 27%, white);
-  background: color-mix(in srgb, var(--voice) 6%, white);
+  border-color: color-mix(in srgb, var(--voice) 53%, white);
+  background: color-mix(in srgb, var(--voice) 8%, white);
 }
 .addline button:hover {
   border-color: var(--voice);
@@ -610,12 +626,12 @@ button[aria-pressed="true"] {
   container-type: inline-size;
   background: white;
   border: 1px solid var(--line);
-  border-left: 4px solid var(--voice);
+  border-left: 5px solid var(--voice);
   border-radius: 9px;
   padding: 0 12px 9px;
 }
 .block[data-active="true"] {
-  border-color: color-mix(in srgb, var(--voice) 42%, white);
+  border-color: color-mix(in srgb, var(--voice) 55%, white);
   border-left-color: var(--voice);
   box-shadow: 0 2px 8px #31291f12;
 }
@@ -624,7 +640,7 @@ button[aria-pressed="true"] {
   margin: 0 -12px;
   padding: 4px 10px;
   border-radius: 5px 8px 0 0;
-  background: color-mix(in srgb, var(--voice) 7%, white);
+  background: color-mix(in srgb, var(--voice) 10%, white);
 }
 .blockhead small {
   flex: 1;
@@ -799,9 +815,6 @@ button[aria-pressed="true"] {
   font-size: 0.76rem;
   padding: 2px 5px;
 }
-.meter small {
-  font-size: 0.74rem;
-}
 .bar {
   display: flex;
   background: #e4e1d8;
@@ -810,8 +823,8 @@ button[aria-pressed="true"] {
   overflow: hidden;
 }
 .writing-panel {
-  border-left: 1px solid color-mix(in srgb, var(--section-color) 22%, #ede8dd);
-  background: color-mix(in srgb, var(--section-color) 7%, #fbf9f3);
+  border-left: 1px solid var(--line);
+  background: var(--rail-surface);
   min-width: 0;
 }
 .writing-panel-inner {
@@ -827,7 +840,7 @@ button[aria-pressed="true"] {
   align-items: center;
   justify-content: space-between;
   gap: 7px;
-  color: var(--section-color);
+  margin-bottom: 13px;
 }
 .writing-panel h2 {
   display: flex;
@@ -840,25 +853,23 @@ button[aria-pressed="true"] {
 }
 .writing-panel h2 svg {
   flex: 0 0 auto;
+  color: var(--section-color);
 }
 .guide-count {
   flex: 0 0 auto;
-  border: 1px solid color-mix(in srgb, var(--section-color) 24%, white);
-  background: #fffefa;
+  border: 1px solid var(--line);
+  background: white;
   border-radius: 7px;
   padding: 3px 7px;
   font-weight: 750;
   font-size: 0.79rem;
   font-variant-numeric: tabular-nums;
 }
-.guide-instruction,
 .guide-note {
   margin: 8px 0 12px;
-  color: #4a443c;
+  color: var(--ink);
   font-size: 0.9rem;
-}
-.guide-note {
-  background: color-mix(in srgb, var(--section-color) 6%, white);
+  background: #e4e9f0;
   border-radius: 6px;
   padding: 7px 9px;
 }
@@ -871,15 +882,13 @@ button[aria-pressed="true"] {
 }
 .guide-card {
   padding: 11px;
-  border: 1px solid color-mix(in srgb, var(--section-color) 21%, white);
-  border-left: 3px solid var(--section-color);
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fffefa;
+  background: white;
 }
 .guide-card[data-checked="true"] {
-  background: #f3faf4;
-  border-color: #b6d4bf;
-  border-left-color: var(--green);
+  background: #f0f7f2;
+  border-color: #8fab99;
 }
 .guide-label {
   display: flex;
@@ -901,7 +910,7 @@ button[aria-pressed="true"] {
 .guide-card p {
   font-size: 0.9rem;
   line-height: 1.48;
-  color: #4a4941;
+  color: var(--muted);
   margin: 5px 0 7px;
 }
 .guide-phrase {
@@ -911,12 +920,14 @@ button[aria-pressed="true"] {
   font-weight: 540;
   font-size: 0.9rem;
   line-height: 1.35;
-  min-height: 32px;
-  padding: 5px 7px;
-  margin-top: 4px;
-  color: #30302c;
-  border-color: #eeebe3;
-  background: #f8f7f2;
+  min-height: 36px;
+  padding: 7px 9px;
+  color: var(--ink);
+  border-color: var(--line);
+  background: #f1f4f8;
+}
+.guide-phrase span {
+  overflow-wrap: anywhere;
 }
 .guide-phrase svg {
   color: var(--section-color);
@@ -924,6 +935,30 @@ button[aria-pressed="true"] {
 .guide-phrase:hover {
   border-color: color-mix(in srgb, var(--section-color) 48%, white);
   background: color-mix(in srgb, var(--section-color) 7%, white);
+}
+.guide-example-nav {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+.guide-example-nav button {
+  display: grid;
+  place-items: center;
+  min-height: 34px;
+  width: 34px;
+  padding: 0;
+  border-color: var(--line);
+  color: var(--ink);
+  background: white;
+}
+.guide-example-nav button:hover {
+  border-color: #8e9db1;
+  background: #e8edf4;
 }
 dialog.sos-categories {
   width: min(95vw, 1040px);
@@ -1360,9 +1395,6 @@ blockquote {
   }
   .editor .sectionhead {
     align-items: start;
-  }
-  .sectionhead small {
-    font-size: 0.73rem;
   }
   .angles button {
     min-width: 0;
