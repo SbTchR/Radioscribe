@@ -243,7 +243,7 @@ function MessageForm({
   );
 }
 
-function Message({ entry, name, showBlock, edit, remove }) {
+function Message({ entry, name, showBlock, edit, remove, removing }) {
   const student = entry.role === "student";
   const kind = messageKind(entry);
   return (
@@ -272,6 +272,7 @@ function Message({ entry, name, showBlock, edit, remove }) {
                 className="icon"
                 title={"Modifier le " + kind}
                 aria-label={"Modifier le " + kind}
+                disabled={removing}
                 onClick={edit}
               >
                 <Pencil size={16} aria-hidden="true" />
@@ -283,6 +284,7 @@ function Message({ entry, name, showBlock, edit, remove }) {
                 className="icon"
                 title={"Supprimer le " + kind}
                 aria-label={"Supprimer le " + kind}
+                disabled={removing}
                 onClick={remove}
               >
                 <Trash2 size={16} aria-hidden="true" />
@@ -318,8 +320,8 @@ function Discussion({
   const [replyTo, setReplyTo] = useState(initialReply);
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
-  const [deleteError, setDeleteError] = useState("");
-  const [deletingBusy, setDeletingBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
+  const [pendingDeletions, setPendingDeletions] = useState([]);
   const [readError, setReadError] = useState("");
   const teammates = people.filter((p) => p.id !== identity);
   const name = (id) =>
@@ -387,17 +389,17 @@ function Discussion({
     await room.sync();
   }
 
-  async function confirmDelete() {
-    if (deletingBusy) return;
-    setDeletingBusy(true);
-    setDeleteError("");
+  async function deleteEntry(entry) {
+    if (pendingDeletions.includes(entry.id)) return;
+    setPendingDeletions((ids) => [...ids, entry.id]);
+    setDeleteError(null);
     try {
-      await change(deleting, null, false);
-      setDeleting(null);
+      await change(entry, null, false);
+      setDeleting((current) => (current?.id === entry.id ? null : current));
     } catch (e) {
-      setDeleteError(e.message);
+      setDeleteError({ id: entry.id, text: e.message });
     } finally {
-      setDeletingBusy(false);
+      setPendingDeletions((ids) => ids.filter((id) => id !== entry.id));
     }
   }
 
@@ -406,12 +408,19 @@ function Discussion({
     const canEdit =
       !entry.deleted && (student ? !manager && entry.owned : manager);
     const canRemove = !entry.deleted && (manager || (student && entry.owned));
+    const confirming = !manager && deleting?.id === entry.id;
+    const removing = pendingDeletions.includes(entry.id);
+    const error = deleteError?.id === entry.id ? deleteError.text : "";
     function beginEdit() {
       setEditing(entry);
       setDeleting(null);
     }
     function beginDelete() {
-      setDeleteError("");
+      if (manager) {
+        deleteEntry(entry);
+        return;
+      }
+      setDeleteError(null);
       setDeleting(entry);
     }
 
@@ -434,32 +443,37 @@ function Discussion({
             showBlock={!target && !!entry.block && !entry.parent}
             edit={canEdit ? beginEdit : undefined}
             remove={canRemove ? beginDelete : undefined}
+            removing={removing}
           />
         )}
-        {canRemove && deleting?.id === entry.id && (
+        {canRemove && (confirming || error) && (
           <div className="message-deletion">
-            <p>Supprimer ce {messageKind(entry)} ?</p>
-            {deleteError && (
+            {error && (
               <p className="error" role="alert">
-                {deleteError}
+                {error}
               </p>
             )}
-            <div className="actions">
-              <button
-                type="button"
-                disabled={deletingBusy}
-                onClick={confirmDelete}
-              >
-                Confirmer la suppression
-              </button>
-              <button
-                type="button"
-                disabled={deletingBusy}
-                onClick={() => setDeleting(null)}
-              >
-                Annuler
-              </button>
-            </div>
+            {confirming && (
+              <>
+                <p>Supprimer ce {messageKind(entry)} ?</p>
+                <div className="actions">
+                  <button
+                    type="button"
+                    disabled={removing}
+                    onClick={() => deleteEntry(deleting)}
+                  >
+                    Confirmer la suppression
+                  </button>
+                  <button
+                    type="button"
+                    disabled={removing}
+                    onClick={() => setDeleting(null)}
+                  >
+                    Annuler
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

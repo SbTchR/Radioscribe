@@ -347,7 +347,9 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
       { timeout: 25000 },
     );
     await button(comment, "Supprimer le commentaire").click();
-    await button(comment, "Confirmer la suppression").click();
+    await expect(
+      button(teacherDiscussion, "Confirmer la suppression"),
+    ).toHaveCount(0);
     await expect(pupilDiscussion).toContainText("Commentaire supprimé", {
       timeout: 25000,
     });
@@ -358,6 +360,9 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
     const teacherThread = directThread(teacherDiscussion);
     await expect(button(teacherThread, "Modifier le message")).toHaveCount(0);
     await button(pupilThread, "Supprimer le message").click();
+    await expect(pupilThread).toContainText(
+      "Peux-tu relire toute notre introduction ?",
+    );
     await button(pupilThread, "Confirmer la suppression").click();
     await expect(teacherThread).toContainText("Message supprimé", {
       timeout: 25000,
@@ -366,7 +371,9 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
       "Peux-tu relire toute notre introduction ?",
     );
     await button(teacherThread, "Supprimer le message").click();
-    await button(teacherThread, "Confirmer la suppression").click();
+    await expect(
+      button(teacherDiscussion, "Confirmer la suppression"),
+    ).toHaveCount(0);
     await expect(directThread(partnerDiscussion)).toHaveCount(0, {
       timeout: 25000,
     });
