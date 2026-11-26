@@ -26,8 +26,21 @@ async function add(page, name, text) {
   });
   await expect(editor).toBeFocused();
   await editor.fill(text);
-  await btn(card, "Valider la réplique").click();
-  await expect(card).toHaveAttribute("data-active", "false");
+  await expect
+    .poll(() =>
+      page.evaluate(
+        (expected) =>
+          Object.keys(localStorage)
+            .filter((key) => key.startsWith("radioscribe.1.room."))
+            .some((key) =>
+              Object.values(JSON.parse(localStorage[key]).rows).some(
+                (row) => row.data.text === expected,
+              ),
+            ),
+        text,
+      ),
+    )
+    .toBe(true);
 }
 test.beforeEach(async ({ context }) => {
   await context.addInitScript(() => {

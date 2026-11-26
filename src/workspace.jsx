@@ -9,7 +9,6 @@ import {
   ArrowLeft,
   ArrowRight,
   BookOpen,
-  Check,
   CheckCheck,
   ChevronRight,
   Copy,
@@ -987,23 +986,6 @@ export function Workspace({
                       }}
                     >
                       {recordLabel}
-                    </ReplyAction>
-                    <ReplyAction
-                      label="Valider la réplique"
-                      icon={Check}
-                      tone="vert"
-                      disabled={live}
-                      onClick={() =>
-                        run(async () => {
-                          await drafts.flush(id);
-                          setActive((current) =>
-                            current === id ? null : current,
-                          );
-                          setMsg("Réplique validée.");
-                        })
-                      }
-                    >
-                      Valider la réplique
                     </ReplyAction>
                     <ReplyAction
                       label="Diviser au curseur"

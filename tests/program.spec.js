@@ -12,7 +12,6 @@ async function writeReply(page, speaker, text) {
   const card = page.locator(".block").last();
   await expect(card.getByRole("textbox")).toBeFocused();
   await card.getByRole("textbox").fill(text);
-  await button(card, "Valider la réplique").click();
   await expect(page.locator(".save")).toHaveText("Sauvegardé");
 }
 
