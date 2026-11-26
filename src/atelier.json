@@ -6,7 +6,11 @@
       "phrases": [
         "Saviez-vous que… ?",
         "Imaginez un instant…",
-        "Vous êtes-vous déjà demandé pourquoi… ?"
+        "Vous êtes-vous déjà demandé pourquoi… ?",
+        "Fermez les yeux. Vous entendez … Où sommes-nous ?",
+        "Tout est parti d’un détail que … a remarqué en …",
+        "Je te donne trois indices pour deviner notre sujet : …, … et …",
+        "À votre avis, combien de … faut-il pour … ? Gardez votre réponse en tête."
       ]
     },
     {
@@ -14,7 +18,12 @@
       "help": "",
       "phrases": [
         "Bonjour à toutes et à tous ! Au micro aujourd'hui, …",
-        "Je suis… et je suis accompagné de…"
+        "Je suis… et je suis accompagné de…",
+        "Moi, c’est … Je me suis demandé … Et toi, …, qu’as-tu voulu savoir ?",
+        "Deux voix pour cette chronique : … s’est occupé de … et moi, …, j’ai exploré …",
+        "Vous reconnaissez peut-être la voix de … Aujourd’hui, je partage le micro avec …",
+        "Nous sommes … et …, de la classe de … Ce qui nous a réunis autour du micro, c’est …",
+        "Je m’appelle … À mes côtés, … a apporté quelque chose pour commencer notre chronique."
       ]
     },
     {
@@ -22,7 +31,12 @@
       "help": "",
       "phrases": [
         "À l'animation, nous retrouvons…",
-        "Aujourd'hui, c'est … qui est à la technique."
+        "Aujourd'hui, c'est … qui est à la technique.",
+        "Vous venez d’entendre … à l’animation. Pendant ce temps, … règle le son.",
+        "Qui fait quoi au studio ? … mène l’émission et … veille sur nos micros.",
+        "Si vous nous entendez, c’est grâce à … à la régie. Pour nous guider aujourd’hui, il y a …",
+        "… nous a donné le signal depuis la régie. …, qui anime l’émission, nous passe le micro.",
+        "Un mot sur notre équipe : … choisit le moment de nous donner la parole, et … lance les sons."
       ]
     },
     {
@@ -30,7 +44,12 @@
       "help": "",
       "phrases": [
         "Aujourd'hui, nous allons vous parler de…",
-        "Notre chronique est consacrée à…"
+        "Notre chronique est consacrée à…",
+        "Quel rapport entre … et … ? C’est ce qu’on va chercher ensemble.",
+        "Notre point de départ, c’est une question que … nous a posée : … ?",
+        "Direction …, pour comprendre comment …",
+        "Tu as apporté … au studio. Qu’est-ce que cet objet raconte sur … ?",
+        "Quand on dit « … », on pense souvent à … Aujourd’hui, on va explorer …"
       ]
     },
     {
@@ -39,7 +58,11 @@
       "phrases": [
         "Pourquoi en parler ? Parce que…",
         "Ce sujet nous concerne car…",
-        "Vous allez découvrir pourquoi…"
+        "Vous allez découvrir pourquoi…",
+        "La prochaine fois que vous …, savoir … pourrait vous servir.",
+        "À l’école, on rencontre … presque tous les jours. Pourtant, qui sait … ?",
+        "Moi, ce qui m’a donné envie d’enquêter là-dessus, c’est le jour où …",
+        "Pour quelqu’un qui …, quel changement ça peut faire de … ?"
       ]
     }
   ],
@@ -50,7 +73,11 @@
       "phrases": [
         "Pour commencer, qu'est-ce que… exactement ?",
         "En quelques mots, …",
-        "Ce qui caractérise…, c'est…"
+        "Ce qui caractérise…, c'est…",
+        "Si je n’en ai jamais entendu parler, à quoi est-ce que je peux reconnaître … ?",
+        "Imagine … Tu as déjà une bonne image de …",
+        "Prenons quelque chose que vous connaissez : … fonctionne un peu comme …",
+        "Quand tu dis « … », est-ce que ça inclut aussi … ?"
       ]
     },
     {
@@ -59,7 +86,11 @@
       "phrases": [
         "Pour comprendre…, remontons un peu dans le temps.",
         "Tout a commencé…",
-        "Depuis, les choses ont beaucoup changé."
+        "Depuis, les choses ont beaucoup changé.",
+        "Plaçons-nous en …, à … À cette époque, …",
+        "Qui a eu l’idée de …, et de quoi avait-on besoin à ce moment-là ?",
+        "Entre … et …, il y a eu un tournant : …",
+        "Regardez le chemin parcouru : au départ, …, alors qu’aujourd’hui …"
       ]
     },
     {
@@ -68,7 +99,11 @@
       "phrases": [
         "Mais concrètement, comment ça fonctionne ?",
         "Tout d'abord…, puis…",
-        "Prenons un exemple pour mieux comprendre."
+        "Prenons un exemple pour mieux comprendre.",
+        "Suivons le trajet d’un …, depuis … jusqu’à …",
+        "Que se passe-t-il si on saute l’étape où … ?",
+        "C’est au moment où … que … entre en jeu.",
+        "Tu pourrais nous décrire ce qu’on verrait si on observait … de près ?"
       ]
     },
     {
@@ -77,7 +112,11 @@
       "phrases": [
         "Mais qui est vraiment concerné ?",
         "Parmi les personnes qui jouent un rôle important, il y a…",
-        "Pour ces personnes, cela signifie que…"
+        "Pour ces personnes, cela signifie que…",
+        "Mettons-nous à la place de … Une journée ordinaire commence par …",
+        "Qui prend la décision de …, et qui doit ensuite … ?",
+        "On voit facilement …, mais qui travaille en coulisses pour … ?",
+        "Est-ce que … vit la même chose que … ?"
       ]
     },
     {
@@ -86,7 +125,11 @@
       "phrases": [
         "Comment expliquer ce phénomène ?",
         "Une des principales raisons, c'est…",
-        "Il ne faut pas oublier non plus que…"
+        "Il ne faut pas oublier non plus que…",
+        "Qu’est-ce qui a déclenché … au départ ?",
+        "Si … entraîne …, c’est parce que …",
+        "Pour y voir plus clair, distinguons ce qui vient de … et ce qui vient de …",
+        "Pourquoi cela arrive-t-il davantage quand … ?"
       ]
     },
     {
@@ -95,7 +138,11 @@
       "phrases": [
         "Et quelles sont les conséquences ?",
         "D'un côté…, mais de l'autre…",
-        "Le véritable enjeu, c'est…"
+        "Le véritable enjeu, c'est…",
+        "Prenons le cas de … Dans sa vie de tous les jours, qu’est-ce qui change ?",
+        "Le premier effet se voit tout de suite : … À plus long terme, …",
+        "Qui a le plus à gagner si … ? Et qui risque de … ?",
+        "Si cela continue, à quoi faudra-t-il faire attention ?"
       ]
     },
     {
@@ -104,7 +151,11 @@
       "phrases": [
         "Et maintenant, une petite anecdote.",
         "Saviez-vous que… ?",
-        "Le plus étonnant dans cette histoire, c'est…"
+        "Le plus étonnant dans cette histoire, c'est…",
+        "On est en …, à … Quelqu’un remarque soudain que …",
+        "Si je te dis …, tu penses à quoi ? Écoute ce qu’on a trouvé.",
+        "En lisant …, un détail nous a arrêtés : …",
+        "Devinez comment l’histoire se termine. Un indice : …"
       ]
     },
     {
@@ -113,7 +164,11 @@
       "phrases": [
         "Et toi, quel est ton avis ?",
         "Certains pensent que…, alors que d'autres…",
-        "Dans les prochaines années, on pourrait…"
+        "Dans les prochaines années, on pourrait…",
+        "Au début de notre enquête, je pensais … Ce qui m’a fait réfléchir, c’est …",
+        "Si tu pouvais poser une question à … sur l’avenir de …, ce serait laquelle ?",
+        "Pour …, la priorité devrait être … Son argument, c’est …",
+        "Imaginons que … devienne possible. Qu’est-ce que ça changerait ?"
       ]
     },
     {
@@ -122,7 +177,11 @@
       "phrases": [
         "Parlons maintenant d'argent.",
         "Mais combien cela coûte-t-il ?",
-        "Une partie des revenus provient de…"
+        "Une partie des revenus provient de…",
+        "Suivons un franc dépensé pour … Où va-t-il ensuite ?",
+        "Qui paie pour … quand c’est gratuit pour … ?",
+        "Sur un budget de … francs, combien faut-il réserver à … ?",
+        "Entre … et …, le prix change. Qu’est-ce qui explique cette différence ?"
       ]
     },
     {
@@ -131,7 +190,11 @@
       "phrases": [
         "Pour vous donner une idée, …",
         "Un chiffre particulièrement frappant : …",
-        "Cela représente environ…"
+        "Cela représente environ…",
+        "D’après …, en …, on comptait …",
+        "Sur cent personnes, ça ferait combien ?",
+        "Comparons la même mesure à deux dates : … en … et … en …",
+        "Avant d’interpréter ce nombre, qui a été compté, et sur quelle période ?"
       ]
     },
     {
@@ -140,7 +203,11 @@
       "phrases": [
         "Tenez-vous bien ! Le record est de…",
         "Ce qui rend cet exploit impressionnant, c'est…",
-        "Peut-on faire mieux aujourd'hui ?"
+        "Peut-on faire mieux aujourd'hui ?",
+        "Pour battre le record précédent, il fallait dépasser … de …",
+        "Nous sommes à …, le jour où … tente de …",
+        "Si on ramenait cette performance à la taille de notre cour d’école, …",
+        "Quelles règles faut-il respecter pour que ce record soit reconnu ?"
       ]
     },
     {
@@ -149,7 +216,11 @@
       "phrases": [
         "Et ailleurs, comment cela se passe-t-il ?",
         "Contrairement à…, …",
-        "Ce qui frappe quand on compare les deux, c'est…"
+        "Ce qui frappe quand on compare les deux, c'est…",
+        "Prenons la même situation à … puis à … Que remarquez-vous ?",
+        "À première vue, … et … se ressemblent. Le détail qui les distingue, c’est …",
+        "Qu’est-ce que … et … ont quand même en commun ?",
+        "Si on compare seulement …, lequel des deux … ?"
       ]
     },
     {
@@ -158,7 +229,11 @@
       "phrases": [
         "On entend souvent dire que…",
         "Mais est-ce vraiment vrai ?",
-        "En réalité, …"
+        "En réalité, …",
+        "Vrai ou faux : … ? Prenez une seconde pour choisir.",
+        "Pour vérifier cette affirmation, nous avons consulté … Voici ce qu’on y lit.",
+        "D’où vient l’idée que … ? Remontons à …",
+        "Dans quel cas cette idée marche-t-elle, et dans quel cas cesse-t-elle de marcher ?"
       ]
     },
     {
@@ -167,7 +242,11 @@
       "phrases": [
         "Ce sujet ne fait pas l'unanimité.",
         "Les défenseurs de… expliquent que…",
-        "À l'inverse, les critiques soulignent que…"
+        "À l'inverse, les critiques soulignent que…",
+        "Sur quel point précis … et … sont-ils en désaccord ?",
+        "Pour comprendre le débat, écoutons la raison avancée par …",
+        "Si tu posais la même question à …, quelle réponse entendrais-tu ?",
+        "Y a-t-il au moins un point sur lequel les deux camps se rejoignent ?"
       ]
     },
     {
@@ -176,7 +255,11 @@
       "phrases": [
         "Alors, que pourrait-on faire ?",
         "Une solution possible serait de…",
-        "Mais cette solution a aussi ses limites."
+        "Mais cette solution a aussi ses limites.",
+        "À …, on a déjà essayé de … Qu’est-ce que ça a donné ?",
+        "Si on disposait de …, par quoi pourrait-on commencer ?",
+        "Entre … et …, laquelle de ces pistes conviendrait le mieux à … ?",
+        "Comment saurait-on que la solution fonctionne vraiment ?"
       ]
     },
     {
@@ -185,7 +268,11 @@
       "phrases": [
         "Ces derniers temps, on entend beaucoup parler de…",
         "Récemment, …",
-        "Ce qui change aujourd'hui, c'est…"
+        "Ce qui change aujourd'hui, c'est…",
+        "Le …, à …, il s’est passé quelque chose de nouveau : …",
+        "Jusqu’ici, on devait … Qu’est-ce qu’on peut faire depuis … ?",
+        "Pourquoi cette nouvelle fait-elle parler d’elle cette semaine ?",
+        "Le prochain rendez-vous à suivre, c’est … On saura alors si …"
       ]
     },
     {
@@ -194,7 +281,11 @@
       "phrases": [
         "Pour illustrer cela, prenons le témoignage de…",
         "De mon côté, j'ai déjà…",
-        "Qu'est-ce que tu en as retenu ?"
+        "Qu'est-ce que tu en as retenu ?",
+        "Quand … est arrivé, qu’as-tu vu en premier ?",
+        "Voici les mots de …, qui a vécu cette scène : « … »",
+        "Tu te souviens du moment où tu as compris que … ?",
+        "Dans ce récit, un détail m’a marqué : … Est-ce aussi celui que tu retiens ?"
       ]
     },
     {
@@ -203,7 +294,11 @@
       "phrases": [
         "Si vous voulez vous lancer, …",
         "Notre premier conseil serait de…",
-        "Attention toutefois à…"
+        "Attention toutefois à…",
+        "Avant de commencer, vérifiez que vous avez …",
+        "Comment reconnaître le bon moment pour … ? Cherchez …",
+        "Si jamais … vous arrive, vous pouvez …",
+        "Pour un premier essai, prenez … et essayez de …"
       ]
     },
     {
@@ -212,7 +307,11 @@
       "phrases": [
         "Mais pourquoi est-ce devenu aussi populaire ?",
         "Les réseaux sociaux ont joué un rôle dans…",
-        "Cette influence se retrouve notamment dans…"
+        "Cette influence se retrouve notamment dans…",
+        "Qui a fait découvrir … au-delà de son premier public ?",
+        "Comment … est-il passé de … jusque dans … ?",
+        "On reconnaît la trace de … jusque dans …, par exemple quand …",
+        "Est-ce que cet engouement dure ? Pour le savoir, regardons …"
       ]
     },
     {
@@ -221,7 +320,11 @@
       "phrases": [
         "Il y a un autre aspect dont on aimerait parler.",
         "Intéressons-nous maintenant à…",
-        "Ce qui mérite aussi notre attention, c'est…"
+        "Ce qui mérite aussi notre attention, c'est…",
+        "En préparant cette partie, on est tombés sur une question inattendue : …",
+        "Si on se plaçait du côté de …, qu’est-ce qu’on verrait ?",
+        "Prenons le détail de … Il en dit long sur …",
+        "Tu voulais encore nous faire entendre … Qu’est-ce qu’on doit écouter ?"
       ]
     }
   ],
@@ -229,37 +332,79 @@
     {
       "title": "Rappeler l'essentiel",
       "help": "Attendu",
-      "phrases": ["S'il y a une chose à retenir, c'est…", "Pour résumer, …"]
+      "phrases": [
+        "S'il y a une chose à retenir, c'est…",
+        "Pour résumer, …",
+        "Au départ, on se demandait … Maintenant, on peut répondre que …",
+        "Deux mots pour garder le fil : … pour …, et … pour …",
+        "Si tu devais expliquer … à un camarade en une phrase, que lui dirais-tu ?",
+        "De … à …, on a suivi le parcours de …",
+        "Ce que l’exemple de … nous a permis de comprendre, c’est …"
+      ]
     },
     {
       "title": "Donner un avis personnel",
       "help": "Facultatif",
       "phrases": [
         "Personnellement, ce que je retiens, c'est…",
-        "De notre côté, nous pensons que…"
+        "De notre côté, nous pensons que…",
+        "En commençant, je croyais que … Après avoir entendu …, je dirais plutôt …",
+        "J’ai surtout été sensible à … parce que …",
+        "Et toi, quelle idée t’a fait changer de regard sur … ?",
+        "Pour ma part, j’hésite encore sur … Voilà pourquoi.",
+        "Si je devais choisir entre … et …, je choisirais … parce que …"
       ]
     },
     {
       "title": "Ouvrir sur une réflexion",
       "help": "Facultatif",
-      "phrases": ["Et vous, qu'en pensez-vous ?", "Reste à savoir si…"]
+      "phrases": [
+        "Et vous, qu'en pensez-vous ?",
+        "Reste à savoir si…",
+        "Que se passerait-il si, demain, … ?",
+        "Après tout ce qu’on vient d’entendre, quelle question poseriez-vous à … ?",
+        "Cette histoire de … pourrait-elle aussi nous aider à comprendre … ?",
+        "À votre avis, qui devrait décider de … ?",
+        "La prochaine fois que vous verrez …, demandez-vous …"
+      ]
     },
     {
       "title": "Donner une recommandation",
       "help": "Facultatif",
-      "phrases": ["Si vous voulez en savoir plus, nous vous conseillons de…"]
+      "phrases": [
+        "Si vous voulez en savoir plus, nous vous conseillons de…",
+        "Pour voir … de vos propres yeux, rendez-vous à …",
+        "Par où commencer si le sujet vous intrigue ? Essayez …",
+        "Le livre … nous a aidés à comprendre … Vous y trouverez …",
+        "Si vous disposez de cinq minutes, écoutez …, surtout le passage où …",
+        "Envie de tenter l’expérience ? Munissez-vous de … et commencez par …",
+        "À quelqu’un qui voudrait se lancer dans …, quel conseil donnerais-tu ?"
+      ]
     },
     {
       "title": "Terminer sur une phrase marquante",
       "help": "Facultatif · Rappeler l'amorce, glisser une touche d'humour ou proposer une dernière idée forte.",
-      "phrases": []
+      "phrases": [
+        "Vous vous souvenez de …, au début ? Maintenant, vous savez pourquoi …",
+        "Si … pouvait parler, son dernier mot serait peut-être « … ».",
+        "La prochaine fois que vous croiserez …, regardez bien …",
+        "Au fond, toute cette histoire tient dans une image : …",
+        "Tu me demandais … Ma réponse tient en trois mots : …",
+        "Pour finir, je vous laisse le son de … Écoutez bien.",
+        "Et si, dès demain, on essayait tous de … ?"
+      ]
     },
     {
       "title": "Remercier les auditeurs et prendre congé",
       "help": "Attendu",
       "phrases": [
         "Merci de nous avoir écoutés !",
-        "À très bientôt pour une nouvelle chronique."
+        "À très bientôt pour une nouvelle chronique.",
+        "C’était … et … au micro. Merci d’avoir partagé ce moment avec nous.",
+        "Votre compagnie nous a fait plaisir. À bientôt sur les ondes !",
+        "Merci d’avoir suivi notre enquête sur … On vous rend l’antenne.",
+        "Un dernier mot pour vous qui nous écoutez : merci, et bonne suite d’émission !",
+        "Depuis …, toute notre équipe vous salue. Merci pour votre écoute !"
       ]
     },
     {
@@ -267,7 +412,12 @@
       "help": "Dernière prise de parole obligatoire",
       "phrases": [
         "On vous laisse maintenant avec [titre], de [artiste]. Bonne écoute !",
-        "Place à la musique avec…"
+        "Place à la musique avec…",
+        "Vous allez entendre « [titre] », de [artiste].",
+        "Pour prolonger cette ambiance de …, on a choisi « [titre] » de [artiste].",
+        "Tu nous annonces le morceau ? Avec plaisir : voici [artiste] avec « [titre] ».",
+        "Aux premières notes, vous reconnaîtrez peut-être « [titre] », de [artiste].",
+        "Gardez cette image de … en tête pendant « [titre] », de [artiste]."
       ]
     }
   ],

@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import bank from "../src/atelier.json" with { type: "json" };
+import { animationGuides } from "../src/animation.js";
 import {
   initial,
   insert,
@@ -12,6 +14,21 @@ import {
   words,
   record,
 } from "../src/domain.js";
+test("Chaque piste de rédaction propose au moins sept phrases distinctes", () => {
+  const categories = [
+    bank.intro,
+    bank.angles,
+    bank.end,
+    bank.sos,
+    ...Object.values(animationGuides),
+  ];
+  for (const { title, phrases } of categories.flat()) {
+    const choices = phrases.map((phrase) => phrase.trim());
+    assert.ok(choices.every(Boolean), title);
+    assert.equal(new Set(choices).size, choices.length, title);
+    assert.ok(choices.length >= 7, title);
+  }
+});
 for (const n of [2, 3, 4])
   test("Création avec " + n + " chroniqueurs", () => {
     const r = initial("Sujet", ["Léa", "Noah", "Rose", "Luc"].slice(0, n));

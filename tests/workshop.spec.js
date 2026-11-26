@@ -97,8 +97,9 @@ test("Du dialogue à la répétition et au PDF personnalisé", async ({
   );
   await btn(examples, "Exemple précédent").click();
   await btn(examples, "Exemple précédent").click();
+  await expect(examples).toContainText("7 / 7");
   await expect(examples.locator(".guide-phrase")).toHaveText(
-    "Vous êtes-vous déjà demandé pourquoi… ?",
+    "À votre avis, combien de … faut-il pour … ? Gardez votre réponse en tête.",
   );
   await amorce.check();
   await add(page, "Léa", "Bonjour. Voici notre sujet.");

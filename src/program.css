@@ -18,19 +18,24 @@
   --line: #c7ced8;
   --program-surface: #f1f3f7;
   --cue-color: #26354d;
+  --cue-tint: #e5eaf1;
   color: var(--ink);
 }
 .program-board [data-group="animation"] {
-  --cue-color: #603b91;
+  --cue-color: #57269b;
+  --cue-tint: #e8d8ff;
 }
 .program-board [data-group="chronicle"] {
-  --cue-color: #a02f25;
+  --cue-color: #99243b;
+  --cue-tint: #ffd9dc;
 }
 .program-board [data-group="music"] {
-  --cue-color: #215681;
+  --cue-color: #084e88;
+  --cue-tint: #cdeaff;
 }
 .program-board [data-group="jingle"] {
-  --cue-color: #79490d;
+  --cue-color: #734400;
+  --cue-tint: #ffe29a;
 }
 .program {
   width: min(1360px, 100%);
@@ -107,13 +112,13 @@
 .program-highlight-options button {
   min-height: 34px;
   padding: 4px 9px;
-  border-color: color-mix(in srgb, var(--cue-color) 42%, white);
+  border-color: var(--cue-color);
   color: var(--cue-color);
-  background: white;
+  background: var(--cue-tint);
   font-size: 0.83rem;
 }
 .program-highlight-options button:not(:disabled):hover {
-  background: color-mix(in srgb, var(--cue-color) 12%, white);
+  background: white;
 }
 .program-highlight-options button[aria-pressed="true"],
 .program-highlight-options button[aria-pressed="true"]:hover {
@@ -138,20 +143,26 @@
   align-items: center;
   gap: clamp(9px, 1.5vw, 20px);
   padding: 10px 13px;
-  border: 1px solid var(--line);
-  border-left: 5px solid var(--cue-color);
+  border: 1px solid color-mix(in srgb, var(--cue-color) 55%, white);
+  border-left: 6px solid var(--cue-color);
   border-radius: 9px;
-  background: white;
+  background: var(--cue-tint);
 }
 .cue-card[data-highlight="active"],
 .projection-cue[data-highlight="active"] {
   border-color: var(--cue-color);
-  background: color-mix(in srgb, var(--cue-color) 12%, white);
+  background: var(--cue-color);
+  --cue-heading: white;
+  --cue-badge: white;
+  --cue-badge-ink: var(--cue-color);
+  --muted: white;
+  color: white;
 }
 .cue-card[data-highlight="muted"],
 .projection-cue[data-highlight="muted"] {
-  --cue-color: #485569;
-  border-left-color: #a4afbf;
+  --cue-color: #495569;
+  --cue-tint: #fff;
+  border-color: #a4afbf;
 }
 .cue-position {
   display: flex;
@@ -159,18 +170,25 @@
   gap: 10px;
   color: var(--cue-color);
 }
-.cue-position > span {
-  min-width: 1.4rem;
-  text-align: right;
+.cue-position > span,
+.projection-number {
+  display: grid;
+  place-items: center;
+  min-width: 1.8rem;
+  height: 1.65rem;
+  border-radius: 5px;
+  background: var(--cue-badge, var(--cue-color));
+  color: var(--cue-badge-ink, white);
   font-variant-numeric: tabular-nums;
-  color: var(--muted);
-  font-size: 0.81rem;
+  font-size: 0.88rem;
+  font-weight: 750;
 }
 .cue-position > svg {
   flex: 0 0 auto;
+  color: var(--cue-heading, var(--cue-color));
 }
 .cue-base {
-  color: var(--cue-color);
+  color: var(--cue-heading, var(--cue-color));
 }
 .cue-name h3 {
   font-size: 1.08rem;
@@ -189,7 +207,7 @@
 }
 .cue-title:hover {
   background: none;
-  color: var(--cue-color);
+  color: var(--cue-heading, var(--cue-color));
   text-decoration: underline;
 }
 .cue-team {
@@ -249,6 +267,15 @@
 }
 .cue-actions {
   justify-content: end;
+  color: var(--ink);
+}
+.cue-card[data-highlight="active"] .cue-management {
+  background: white;
+  border-radius: 6px;
+}
+.cue-card[data-highlight="active"] button:focus-visible {
+  outline-color: white;
+  box-shadow: 0 0 0 2px var(--ink);
 }
 .cue-actions > button {
   padding: 5px 8px;
@@ -384,17 +411,11 @@
   min-height: 41px;
   padding: 6px 9px 6px 5px;
   margin-bottom: 5px;
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--cue-color);
+  border: 1px solid color-mix(in srgb, var(--cue-color) 55%, white);
+  border-left: 6px solid var(--cue-color);
   border-radius: 7px;
-  background: white;
+  background: var(--cue-tint);
   line-height: 1.23;
-}
-.projection-number {
-  text-align: center;
-  font-weight: 750;
-  color: var(--cue-color);
-  font-variant-numeric: tabular-nums;
 }
 .projection-name {
   overflow-wrap: anywhere;
@@ -407,7 +428,7 @@
   font-size: clamp(0.78rem, 1.05vw, 1rem);
 }
 .projection-time {
-  color: var(--ink);
+  color: inherit;
   white-space: nowrap;
   font-size: clamp(0.76rem, 1.04vw, 0.99rem);
   font-variant-numeric: tabular-nums;
