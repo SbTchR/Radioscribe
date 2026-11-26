@@ -40,6 +40,20 @@ const stateLabels = {
   ready: "Validé",
 };
 
+function cueDetail(item) {
+  const title = item.title === item.baseTitle ? "" : item.title;
+  if (item.kind !== "music") return title;
+  if (!title) return item.artist || "";
+  return item.artist
+    ? "« " + title + " » de " + item.artist
+    : "« " + title + " »";
+}
+
+function cueLabel(item) {
+  const detail = cueDetail(item);
+  return item.baseTitle + (detail ? " : " + detail : "");
+}
+
 function ProgramScript({ item, back }) {
   const [rows, setRows] = useState(null);
   const [error, setError] = useState("");
@@ -94,9 +108,15 @@ function ProgramScript({ item, back }) {
 function CueForm({ item, activeItems, close, save, busy, error }) {
   const [kind, setKind] = useState(item?.kind || "chronicle");
   const spoken = kind !== "music" && kind !== "jingle";
+  const fieldLabel =
+    kind === "chronicle"
+      ? "Thème de la chronique"
+      : kind === "music"
+        ? "Titre du morceau"
+        : "Nom de la partie";
   return (
     <Modal
-      title={item ? "Modifier " + item.title : "Ajouter une partie"}
+      title={item ? "Modifier " + item.baseTitle : "Ajouter une partie"}
       close={close}
     >
       <form
@@ -113,6 +133,7 @@ function CueForm({ item, activeItems, close, save, busy, error }) {
           save({
             kind,
             title,
+            artist: form.get("artist")?.trim() || null,
             after: form.get("after") || null,
             names: names.length ? names : null,
             seconds: spoken
@@ -134,16 +155,26 @@ function CueForm({ item, activeItems, close, save, busy, error }) {
           </label>
         )}
         <label>
-          {kind === "chronicle" ? "Sujet de la chronique" : "Nom de la partie"}
+          {fieldLabel}
           <input
             autoFocus
             name="title"
-            required
             maxLength={160}
-            defaultValue={item?.title || ""}
-            placeholder={cueKinds[kind]}
+            defaultValue={
+              item && item.title !== item.baseTitle ? item.title : ""
+            }
           />
         </label>
+        {kind === "music" && (
+          <label>
+            Artiste
+            <input
+              name="artist"
+              maxLength={160}
+              defaultValue={item?.artist || ""}
+            />
+          </label>
+        )}
         {!item && (
           <label>
             Insérer
@@ -151,7 +182,7 @@ function CueForm({ item, activeItems, close, save, busy, error }) {
               <option value="">À la fin</option>
               {activeItems.map((cue) => (
                 <option key={cue.id} value={cue.id}>
-                  Après {cue.title}
+                  Après {cueLabel(cue)}
                 </option>
               ))}
             </select>
@@ -287,10 +318,11 @@ export function ProgramBoard({ id, home, enter }) {
     const item = dialog.item;
     if (item)
       execute(
-        "update",
+        "update_details",
         {
           p_cue: item.id,
           p_title: form.title,
+          p_artist: form.artist,
           p_seconds: form.seconds,
           p_names: form.names,
         },
@@ -298,8 +330,13 @@ export function ProgramBoard({ id, home, enter }) {
       );
     else
       execute(
-        "add",
-        { p_kind: form.kind, p_title: form.title, p_after: form.after },
+        "add_details",
+        {
+          p_kind: form.kind,
+          p_title: form.title,
+          p_artist: form.artist,
+          p_after: form.after,
+        },
         true,
       );
   }
@@ -387,6 +424,13 @@ export function ProgramBoard({ id, home, enter }) {
             <ol className="cue-list" data-manager={program.manager}>
               {activeItems.map((item, index) => {
                 const Icon = cueIcons[item.kind];
+                const detail = cueDetail(item);
+                const heading = (
+                  <span>
+                    <span className="cue-base">{item.baseTitle}</span>
+                    {detail && " : " + detail}
+                  </span>
+                );
                 return (
                   <li className="cue-card" data-kind={item.kind} key={item.id}>
                     <div className="cue-position">
@@ -394,10 +438,6 @@ export function ProgramBoard({ id, home, enter }) {
                       <Icon size={21} aria-hidden="true" />
                     </div>
                     <div className="cue-name">
-                      {item.title !== cueKinds[item.kind] &&
-                        !item.title.startsWith(cueKinds[item.kind] + " ") && (
-                          <small>{cueKinds[item.kind]}</small>
-                        )}
                       {item.room ? (
                         <h3>
                           <button
@@ -405,11 +445,11 @@ export function ProgramBoard({ id, home, enter }) {
                             disabled={busy}
                             onClick={() => openScript(item)}
                           >
-                            {item.title}
+                            {heading}
                           </button>
                         </h3>
                       ) : (
-                        <h3>{item.title}</h3>
+                        <h3>{heading}</h3>
                       )}
                       {item.room && (
                         <p className="cue-team">
@@ -448,7 +488,7 @@ export function ProgramBoard({ id, home, enter }) {
                         <button
                           className="cue-code"
                           title="Copier le code"
-                          aria-label={"Copier le code de " + item.title}
+                          aria-label={"Copier le code de " + item.baseTitle}
                           onClick={() =>
                             copy(item.code, "Code " + item.code + " copié.")
                           }
@@ -463,7 +503,7 @@ export function ProgramBoard({ id, home, enter }) {
                           onClick={() => openScript(item)}
                           aria-label={
                             (item.editable ? "Rédiger " : "Consulter ") +
-                            item.title
+                            item.baseTitle
                           }
                         >
                           {item.editable ? "Rédiger" : "Consulter"}{" "}
@@ -475,7 +515,7 @@ export function ProgramBoard({ id, home, enter }) {
                           <button
                             className="icon"
                             title="Modifier"
-                            aria-label={"Modifier " + item.title}
+                            aria-label={"Modifier " + item.baseTitle}
                             onClick={() => openDialog({ kind: "item", item })}
                           >
                             <Pencil />
@@ -483,7 +523,7 @@ export function ProgramBoard({ id, home, enter }) {
                           <button
                             className="icon"
                             title="Monter"
-                            aria-label={"Monter " + item.title}
+                            aria-label={"Monter " + item.baseTitle}
                             disabled={busy || index === 0}
                             onClick={() =>
                               execute("move", { p_cue: item.id, p_step: -1 })
@@ -494,7 +534,7 @@ export function ProgramBoard({ id, home, enter }) {
                           <button
                             className="icon"
                             title="Descendre"
-                            aria-label={"Descendre " + item.title}
+                            aria-label={"Descendre " + item.baseTitle}
                             disabled={busy || index === activeItems.length - 1}
                             onClick={() =>
                               execute("move", { p_cue: item.id, p_step: 1 })
@@ -505,7 +545,7 @@ export function ProgramBoard({ id, home, enter }) {
                           <button
                             className="icon archive-button"
                             title="Retirer du conducteur"
-                            aria-label={"Retirer " + item.title}
+                            aria-label={"Retirer " + item.baseTitle}
                             onClick={() =>
                               openDialog({ kind: "archive", item })
                             }
@@ -527,7 +567,7 @@ export function ProgramBoard({ id, home, enter }) {
                 <summary>Parties retirées ({archived.length})</summary>
                 {archived.map((item) => (
                   <div key={item.id}>
-                    <span>{item.title}</span>
+                    <span>{cueLabel(item)}</span>
                     <button
                       disabled={busy}
                       onClick={() =>
@@ -596,7 +636,7 @@ export function ProgramBoard({ id, home, enter }) {
       )}
       {dialog?.kind === "archive" && (
         <Modal
-          title={"Retirer « " + dialog.item.title + " » ?"}
+          title={"Retirer « " + dialog.item.baseTitle + " » ?"}
           close={() => setDialog(null)}
         >
           <p>

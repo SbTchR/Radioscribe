@@ -264,6 +264,97 @@ test("Conducteur complet, accès cloisonnés, progression et retours enseignants
     for (const file of files.slice(moderationIndex))
       await db.exec(await readFile("supabase/migrations/" + file, "utf8"));
 
+    await who(teacher);
+    const migrated = await rpc("program_read", show);
+    const migratedFirst = migrated.items.find(({ id }) => id === first.id);
+    const migratedMusic = migrated.items.find(({ id }) => id === music.id);
+    assert.equal(migratedFirst.baseTitle, "Chronique 1");
+    assert.equal(migratedFirst.title, "Le relief");
+    assert.equal(migratedFirst.code, first.code);
+    assert.equal(migratedMusic.baseTitle, "Musique 0");
+    assert.equal(migratedMusic.title, "Album de classe");
+    assert.equal(migratedMusic.artist, null);
+    await rpc(
+      "program_update_details",
+      show,
+      music.id,
+      "Album de classe",
+      125,
+      null,
+      "Joe Dassin",
+    );
+    await rpc("program_update", show, music.id, "Album de classe", 125, null);
+
+    const freshShow = await rpc("program_create", "Nouvelle émission", 1, true);
+    const fresh = await rpc("program_read", freshShow);
+    assert.deepEqual(
+      fresh.items.map((cue) => cue.baseTitle),
+      [
+        "Jingle d’ouverture",
+        "Prise d’antenne",
+        "Musique 0",
+        "Transition 1",
+        "Chronique 1",
+        "Musique 1",
+        "Remise d’antenne",
+        "Jingle de fin",
+      ],
+    );
+    const added = await rpc(
+      "program_add_details",
+      freshShow,
+      "music",
+      "Les Champs Elysées",
+      fresh.items[2].id,
+      " Joe Dassin ",
+    );
+    const addedView = async () =>
+      (await rpc("program_read", freshShow)).items.find(
+        ({ id }) => id === added,
+      );
+    assert.equal((await addedView()).baseTitle, "Musique 2");
+    assert.equal((await addedView()).title, "Les Champs Elysées");
+    assert.equal((await addedView()).artist, "Joe Dassin");
+    await rpc("program_move", freshShow, added, 1);
+    await rpc("program_archive", freshShow, added, true);
+    await rpc("program_archive", freshShow, added, false);
+    assert.equal((await addedView()).baseTitle, "Musique 2");
+    await rpc("program_update_details", freshShow, added, "", 120, null, "");
+    const cleared = await addedView();
+    assert.equal(cleared.title, "Musique 2");
+    assert.equal(cleared.artist, null);
+    assert.equal(cleared.seconds, 120);
+    const newChronicle = await rpc(
+      "program_add_details",
+      freshShow,
+      "chronicle",
+      "Les Grandes Découvertes",
+      null,
+      null,
+    );
+    const themed = (await rpc("program_read", freshShow)).items.find(
+      ({ id }) => id === newChronicle,
+    );
+    assert.equal(themed.baseTitle, "Chronique 2");
+    assert.equal(themed.title, "Les Grandes Découvertes");
+    assert.equal(
+      (await rpc("read", themed.room)).rows.meta.data.title,
+      themed.title,
+    );
+    await rpc(
+      "program_update_details",
+      freshShow,
+      newChronicle,
+      "",
+      0,
+      null,
+      null,
+    );
+    assert.equal(
+      (await rpc("read", themed.room)).rows.meta.data.title,
+      "Chronique 2",
+    );
+
     await who(outsider);
     assert.equal(await rpc("program_read", show), null);
     assert.equal(await rpc("read", second.room), null);
@@ -278,6 +369,32 @@ test("Conducteur complet, accès cloisonnés, progression et retours enseignants
     assert.equal(firstView.title, "Le relief");
     assert.equal(firstView.seconds, 60);
     assert.equal(firstView.status, "draft");
+    const pupilMusic = studentProgram.items.find(({ id }) => id === music.id);
+    assert.equal(pupilMusic.baseTitle, "Musique 0");
+    assert.equal(pupilMusic.artist, "Joe Dassin");
+    await assert.rejects(
+      rpc(
+        "program_update_details",
+        show,
+        music.id,
+        "Titre modifié",
+        125,
+        null,
+        "Artiste",
+      ),
+      /enseignant/,
+    );
+    await assert.rejects(
+      rpc(
+        "program_add_details",
+        show,
+        "music",
+        "Nouveau titre",
+        null,
+        "Artiste",
+      ),
+      /enseignant/,
+    );
     assert.equal(studentProgram.managerKey, null);
     assert.equal(secondView.code, null);
     assert.equal(secondView.editable, false);

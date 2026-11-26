@@ -103,9 +103,8 @@
   box-shadow: 0 0 0 6px color-mix(in srgb, var(--cue-color) 10%, #fffefa);
   margin-inline-end: 6px;
 }
-.cue-name small {
+.cue-base {
   color: var(--cue-color);
-  font-weight: 720;
 }
 .cue-name h3 {
   font-size: 1.08rem;

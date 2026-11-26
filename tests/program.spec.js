@@ -42,6 +42,8 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
   const teammate = await browser.newContext();
   const recovery = await browser.newContext();
   const betterTranscription = "Meilleure transcription (mais plus lente)";
+  const chronicleLabel = "Chronique 1 : Le relief";
+  const musicLabel = "Musique 0 : « Morceau de test » de Groupe de test";
   try {
     for (const context of [teacher, teammate]) {
       await context.route("https://huggingface.co/**", (route) =>
@@ -114,37 +116,45 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
     );
 
     await button(prof, "Modifier Chronique 1").click();
-    await prof.getByLabel("Sujet de la chronique").fill("Le relief");
+    await prof.getByLabel("Thème de la chronique").fill("Le relief");
     await prof.getByLabel("Prénoms de l’équipe").fill("Alice\nBenoît");
     await button(prof, "Enregistrer les modifications").click();
-    await expect(cue(prof, "Le relief")).toContainText("Alice, Benoît");
+    await expect(cue(prof, chronicleLabel)).toContainText("Alice, Benoît");
     const code = (
-      await button(prof, "Copier le code de Le relief").textContent()
+      await button(prof, "Copier le code de Chronique 1").textContent()
     ).trim();
     expect(code).toMatch(/^[2-9A-HJ-NP-Z]{5}$/);
 
     await button(prof, "Modifier Musique 0").click();
-    await prof.getByLabel("Nom de la partie").fill("Morceau de test");
+    await prof.getByLabel("Titre du morceau").fill("Morceau de test");
+    await prof.getByLabel("Artiste").fill("Groupe de test");
     await prof.getByLabel("Minutes").fill("2");
     await prof.getByLabel("Secondes").fill("5");
     await button(prof, "Enregistrer les modifications").click();
-    await expect(cue(prof, "Morceau de test")).toContainText("2 min 05 s");
+    await expect(cue(prof, musicLabel)).toContainText("2 min 05 s");
+    await button(prof, "Modifier Musique 0").click();
+    await expect(prof.getByLabel("Titre du morceau")).toHaveValue(
+      "Morceau de test",
+    );
+    await expect(prof.getByLabel("Artiste")).toHaveValue("Groupe de test");
+    await button(prof.getByRole("dialog"), "Fermer").click();
 
     await button(prof, "Ajouter une partie").click();
-    await prof.getByLabel("Type de partie").selectOption("jingle");
-    await prof.getByLabel("Nom de la partie").fill("Jingle ajouté");
+    await prof.getByLabel("Type de partie").selectOption("music");
+    await prof.getByLabel("Titre du morceau").fill("Les Champs Elysées");
+    await prof.getByLabel("Artiste").fill("Joe Dassin");
     await prof
       .getByRole("combobox", { name: "Insérer", exact: true })
-      .selectOption({ label: "Après Morceau de test" });
+      .selectOption({ label: "Après " + musicLabel });
     await button(prof, "Ajouter au conducteur").click();
     await expect(prof.locator(".cue-card").nth(3)).toContainText(
-      "Jingle ajouté",
+      "Musique 5 : « Les Champs Elysées » de Joe Dassin",
     );
-    await button(prof, "Descendre Jingle ajouté").click();
+    await button(prof, "Descendre Musique 5").click();
     await expect(prof.locator(".cue-card").nth(4)).toContainText(
-      "Jingle ajouté",
+      "Musique 5 : « Les Champs Elysées » de Joe Dassin",
     );
-    await button(prof, "Retirer Jingle ajouté").click();
+    await button(prof, "Retirer Musique 5").click();
     await button(prof, "Retirer du conducteur").click();
     await expect(prof.locator(".cue-card")).toHaveCount(18);
     await prof.evaluate(() => window.scrollTo(0, 0));
@@ -191,15 +201,15 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
     await expect(
       pupil.getByRole("textbox", { name: "Réplique 1 de Alicia" }),
     ).toHaveValue("Bonjour, nous parlons de la formation des montagnes.");
-    await expect(cue(prof, "Le relief")).toContainText("Alicia, Benoît", {
+    await expect(cue(prof, chronicleLabel)).toContainText("Alicia, Benoît", {
       timeout: 22000,
     });
-    await expect(cue(prof, "Le relief")).toContainText("En rédaction", {
+    await expect(cue(prof, chronicleLabel)).toContainText("En rédaction", {
       timeout: 22000,
     });
-    await expect(cue(prof, "Le relief")).toContainText("0 min 03 s");
+    await expect(cue(prof, chronicleLabel)).toContainText("0 min 03 s");
 
-    await button(prof, "Rédiger Le relief").click();
+    await button(prof, "Rédiger Chronique 1").click();
     await button(prof, "Commenter la réplique 1").click();
     await prof
       .getByLabel("Ton commentaire")
@@ -322,7 +332,7 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
     );
     await expect(directThread(partnerDiscussion)).toContainText("Modifié");
 
-    const notice = button(cue(prof, "Le relief"), "3 nouveaux messages");
+    const notice = button(cue(prof, chronicleLabel), "3 nouveaux messages");
     await expect(notice).toBeVisible({ timeout: 25000 });
     await notice.scrollIntoViewIfNeeded();
     await prof.screenshot({ path: info.outputPath("nouveaux-messages.png") });
@@ -388,6 +398,8 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
 
     await button(pupil, "Conducteur de l’émission").click();
     await expect(button(pupil, "Ajouter une partie")).toHaveCount(0);
+    await expect(cue(pupil, musicLabel)).toBeVisible();
+    await expect(button(pupil, "Modifier Musique 0")).toHaveCount(0);
     await expect(pupil.locator(".cue-code")).toHaveCount(1);
     await expect(pupil.locator(".cue-unread")).toHaveCount(0);
     await button(pupil, "Consulter Chronique 2").click();
@@ -403,7 +415,7 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
     ).toHaveCount(0);
     await expect(button(pupil, "Messages du groupe")).toHaveCount(0);
     await button(pupil, "Conducteur de l’émission").click();
-    await expect(button(pupil, "Rédiger Le relief")).toBeVisible();
+    await expect(button(pupil, "Rédiger Chronique 1")).toBeVisible();
     await pupil.setViewportSize({ width: 390, height: 844 });
     expect(
       await pupil.evaluate(
@@ -413,7 +425,9 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
 
     await button(prof.getByRole("dialog"), "Fermer").click();
     await button(prof, "Conducteur de l’émission").click();
-    await expect(cue(prof, "Le relief").locator(".cue-unread")).toHaveCount(0);
+    await expect(cue(prof, chronicleLabel).locator(".cue-unread")).toHaveCount(
+      0,
+    );
     await button(prof, "Rédiger Prise d’antenne").click();
     await expect(
       prof.getByRole("checkbox", { name: "Amorce de l’émission", exact: true }),
