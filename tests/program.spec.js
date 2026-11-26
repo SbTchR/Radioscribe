@@ -157,7 +157,96 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
     await button(prof, "Retirer du conducteur").click();
     await expect(prof.locator(".cue-card")).toHaveCount(18);
     await prof.evaluate(() => window.scrollTo(0, 0));
+    const highlightControls = prof.getByRole("group", {
+      name: "Mettre en évidence",
+    });
+    const headingOrder = await prof.locator(".cue-card h3").allTextContents();
+    for (const [label, group, count] of [
+      ["Animations", "animation", 6],
+      ["Chroniques", "chronicle", 4],
+      ["Musiques", "music", 5],
+      ["Jingles", "jingle", 3],
+    ]) {
+      await button(highlightControls, label).click();
+      await expect(button(highlightControls, label)).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+      await expect(
+        prof.locator(
+          `.cue-card[data-group="${group}"][data-highlight="active"]`,
+        ),
+      ).toHaveCount(count);
+      await expect(
+        prof.locator(".cue-card[data-highlight='muted']"),
+      ).toHaveCount(18 - count);
+      expect(await prof.locator(".cue-card h3").allTextContents()).toEqual(
+        headingOrder,
+      );
+    }
+    await button(highlightControls, "Chroniques").click();
     await prof.screenshot({ path: info.outputPath("conducteur.png") });
+    await prof.setViewportSize({ width: 1280, height: 720 });
+    await button(prof, "Plein écran").click();
+    const projection = prof.getByRole("main", {
+      name: "Émission fictive de recette",
+    });
+    await expect(projection.locator(".projection-cue")).toHaveCount(18);
+    await expect(projection).toContainText("Jingle de fin");
+    await expect(projection).toContainText("Alice, Benoît");
+    await expect(projection).not.toContainText(code);
+    await expect
+      .poll(() =>
+        prof.evaluate(() =>
+          document.fullscreenElement?.classList.contains("program-board"),
+        ),
+      )
+      .toBe(true);
+    const fit = await projection
+      .locator(".projection-scroll")
+      .evaluate(
+        (el) =>
+          el.scrollHeight <= el.clientHeight + 1 &&
+          el.scrollWidth <= el.clientWidth + 1,
+      );
+    expect(fit).toBe(true);
+    await prof.screenshot({ path: info.outputPath("projection.png") });
+    await button(
+      projection.getByRole("group", { name: "Mettre en évidence" }),
+      "Musiques",
+    ).click();
+    await expect(
+      projection.locator(".projection-cue[data-highlight='active']"),
+    ).toHaveCount(5);
+    await prof.evaluate(() => document.exitFullscreen());
+    await expect(button(prof, "Plein écran")).toBeFocused();
+    await expect(button(highlightControls, "Musiques")).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await prof.setViewportSize({ width: 1440, height: 900 });
+    await prof.evaluate(() => {
+      window.print = () => (document.body.dataset.printRequested = "yes");
+    });
+    await button(prof, "Imprimer").click();
+    await expect(prof.locator("body")).toHaveAttribute(
+      "data-print-requested",
+      "yes",
+    );
+    await prof.emulateMedia({ media: "print" });
+    const paper = prof.locator(".program-print");
+    await expect(paper).toBeVisible();
+    await expect(prof.locator(".cue-list")).toBeHidden();
+    await expect(paper.locator("tbody tr")).toHaveCount(18);
+    await expect(paper).toContainText("Groupe de test");
+    await expect(paper).toContainText("Alice, Benoît");
+    await expect(paper).not.toContainText(code);
+    await prof.pdf({
+      path: info.outputPath("conducteur-a4.pdf"),
+      preferCSSPageSize: true,
+    });
+    await prof.emulateMedia({ media: null });
+    await button(highlightControls, "Tout").click();
 
     await button(prof, "Rédiger Chronique 2").click();
     await writeReply(

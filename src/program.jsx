@@ -6,15 +6,16 @@ import {
   ArrowRight,
   ArrowUp,
   BookOpen,
-  Clock3,
   Copy,
   FileText,
   KeyRound,
+  Maximize,
   MessageCircle,
   Mic,
   Music,
   Pencil,
   Plus,
+  Printer,
   Radio,
   RotateCcw,
   UsersRound,
@@ -24,6 +25,17 @@ import { time } from "./domain.js";
 import { rpc } from "./store.js";
 import { cueKinds, readProgram } from "./program-api.js";
 import { ReadOnlyScript } from "./output.jsx";
+import {
+  CueName,
+  ProgramDuration,
+  ProgramHighlight,
+  ProgramProjection,
+  PrintedProgram,
+  cueGroup,
+  cueHighlight,
+  cueLabel,
+  cueTeam,
+} from "./program-views.jsx";
 import "./program.css";
 
 const cueIcons = {
@@ -39,20 +51,6 @@ const stateLabels = {
   draft: "En rédaction",
   ready: "Validé",
 };
-
-function cueDetail(item) {
-  const title = item.title === item.baseTitle ? "" : item.title;
-  if (item.kind !== "music") return title;
-  if (!title) return item.artist || "";
-  return item.artist
-    ? "« " + title + " » de " + item.artist
-    : "« " + title + " »";
-}
-
-function cueLabel(item) {
-  const detail = cueDetail(item);
-  return item.baseTitle + (detail ? " : " + detail : "");
-}
 
 function ProgramScript({ item, back }) {
   const [rows, setRows] = useState(null);
@@ -253,7 +251,13 @@ export function ProgramBoard({ id, home, enter }) {
   const [formError, setFormError] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [group, setGroup] = useState("");
+  const [projecting, setProjecting] = useState(false);
   const request = useRef(0);
+  const board = useRef(null);
+  const projectionViewport = useRef(null);
+  const projectionButton = useRef(null);
+  const restoreProjectionFocus = useRef(false);
 
   async function refresh() {
     const current = ++request.current;
@@ -287,6 +291,47 @@ export function ProgramBoard({ id, home, enter }) {
     const timer = setTimeout(() => setMessage(""), 3500);
     return () => clearTimeout(timer);
   }, [message]);
+
+  useEffect(() => {
+    if (!projecting) {
+      if (restoreProjectionFocus.current) {
+        restoreProjectionFocus.current = false;
+        projectionButton.current?.focus();
+      }
+      return;
+    }
+    const host = board.current;
+    let enteredFullscreen = document.fullscreenElement === host;
+    function fullscreenChanged() {
+      if (document.fullscreenElement === host) enteredFullscreen = true;
+      else if (enteredFullscreen) setProjecting(false);
+    }
+    function escape(event) {
+      if (event.key === "Escape") setProjecting(false);
+    }
+    projectionViewport.current?.focus();
+    document.addEventListener("fullscreenchange", fullscreenChanged);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("fullscreenchange", fullscreenChanged);
+      document.removeEventListener("keydown", escape);
+      if (document.fullscreenElement === host)
+        document.exitFullscreen().catch(() => {});
+    };
+  }, [projecting]);
+
+  function startProjection() {
+    restoreProjectionFocus.current = true;
+    setProjecting(true);
+    const host = board.current;
+    host
+      .requestFullscreen?.()
+      .then(() => {
+        if (document.fullscreenElement === host && !projectionViewport.current)
+          return document.exitFullscreen();
+      })
+      .catch(() => {});
+  }
 
   function openDialog(value) {
     setFormError("");
@@ -359,12 +404,41 @@ export function ProgramBoard({ id, home, enter }) {
   const archived = program?.items.filter((item) => item.archived) || [];
   const seconds = activeItems.reduce((total, item) => total + item.seconds, 0);
   const untimed = activeItems.filter((item) => !item.seconds).length;
+  const highlight = activeItems.some((item) => cueGroup(item.kind) === group)
+    ? group
+    : "";
+  const print = program && (
+    <PrintedProgram
+      title={program.title}
+      items={activeItems}
+      seconds={seconds}
+      untimed={untimed}
+      highlight={highlight}
+    />
+  );
+  if (projecting && program) {
+    return (
+      <div className="program-board" ref={board}>
+        <ProgramProjection
+          title={program.title}
+          items={activeItems}
+          seconds={seconds}
+          untimed={untimed}
+          highlight={highlight}
+          onHighlight={setGroup}
+          viewport={projectionViewport}
+          close={() => setProjecting(false)}
+        />
+        {print}
+      </div>
+    );
+  }
   const openScript = (item, messages = false) =>
     item.editable
       ? act(() => enter(item.room, program.manager, messages))
       : setPreview(item);
   return (
-    <>
+    <div className="program-board" ref={board}>
       <header className="mast projectmast">
         <Brand onClick={home} />
         <span className="program-mode">
@@ -386,18 +460,7 @@ export function ProgramBoard({ id, home, enter }) {
             <div className="program-head">
               <div>
                 <h1>{program.title}</h1>
-                <p className="program-duration">
-                  <Clock3 size={17} /> <strong>{time(seconds)}</strong> prévues
-                  {untimed > 0 && (
-                    <span>
-                      {" "}
-                      · {untimed}{" "}
-                      {untimed === 1
-                        ? "durée à compléter"
-                        : "durées à compléter"}
-                    </span>
-                  )}
-                </p>
+                <ProgramDuration seconds={seconds} untimed={untimed} />
               </div>
               {program.manager && (
                 <div className="actions program-tools">
@@ -412,27 +475,43 @@ export function ProgramBoard({ id, home, enter }) {
             </div>
             <div className="program-list-head">
               <h2>Conducteur de l’émission</h2>
-              {program.manager && (
+              <div className="actions program-view-actions">
                 <button
-                  className="primary"
-                  onClick={() => openDialog({ kind: "item" })}
+                  type="button"
+                  ref={projectionButton}
+                  onClick={startProjection}
                 >
-                  <Plus /> Ajouter une partie
+                  <Maximize aria-hidden="true" /> Plein écran
                 </button>
-              )}
+                <button type="button" onClick={() => window.print()}>
+                  <Printer aria-hidden="true" /> Imprimer
+                </button>
+                {program.manager && (
+                  <button
+                    className="primary"
+                    onClick={() => openDialog({ kind: "item" })}
+                  >
+                    <Plus aria-hidden="true" /> Ajouter une partie
+                  </button>
+                )}
+              </div>
             </div>
+            <ProgramHighlight
+              items={activeItems}
+              highlight={highlight}
+              onHighlight={setGroup}
+            />
             <ol className="cue-list" data-manager={program.manager}>
               {activeItems.map((item, index) => {
                 const Icon = cueIcons[item.kind];
-                const detail = cueDetail(item);
-                const heading = (
-                  <span>
-                    <span className="cue-base">{item.baseTitle}</span>
-                    {detail && " : " + detail}
-                  </span>
-                );
                 return (
-                  <li className="cue-card" data-kind={item.kind} key={item.id}>
+                  <li
+                    className="cue-card"
+                    data-kind={item.kind}
+                    data-group={cueGroup(item.kind)}
+                    data-highlight={cueHighlight(item, highlight)}
+                    key={item.id}
+                  >
                     <div className="cue-position">
                       <span>{index + 1}</span>
                       <Icon size={21} aria-hidden="true" />
@@ -445,18 +524,18 @@ export function ProgramBoard({ id, home, enter }) {
                             disabled={busy}
                             onClick={() => openScript(item)}
                           >
-                            {heading}
+                            <CueName item={item} />
                           </button>
                         </h3>
                       ) : (
-                        <h3>{heading}</h3>
+                        <h3>
+                          <CueName item={item} />
+                        </h3>
                       )}
                       {item.room && (
                         <p className="cue-team">
-                          <UsersRound size={15} />{" "}
-                          {item.assigned
-                            ? item.names.join(", ")
-                            : "Équipe à attribuer"}
+                          <UsersRound size={15} aria-hidden="true" />{" "}
+                          {cueTeam(item)}
                         </p>
                       )}
                     </div>
@@ -692,6 +771,7 @@ export function ProgramBoard({ id, home, enter }) {
           </button>
         </Modal>
       )}
-    </>
+      {print}
+    </div>
   );
 }
