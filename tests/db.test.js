@@ -130,13 +130,16 @@ test("Conducteur complet, accès cloisonnés, progression et retours enseignants
       teammate = uid(),
       outsider = uid();
     const files = (await readdir("supabase/migrations")).sort();
+    const moderationIndex = files.findIndex((file) =>
+      file.endsWith("_radio_moderation.sql"),
+    );
     await db.exec(await readFile("supabase/migrations/" + files[0], "utf8"));
     await who(teacher);
     const oldRows = initial("Ancien projet", ["A", "B"]);
     oldRows.meta.data.speed = 130;
     const old = await rpc("create", JSON.stringify(oldRows));
     await db.exec("reset role");
-    for (const file of files.slice(1))
+    for (const file of files.slice(1, moderationIndex))
       await db.exec(await readFile("supabase/migrations/" + file, "utf8"));
     await who(student);
     assert.equal(await rpc("join", old.code.toLowerCase()), old.id);
@@ -243,6 +246,24 @@ test("Conducteur complet, accès cloisonnés, progression et retours enseignants
       (await rpc("read", second.room)).rows,
     ).find((key) => key.startsWith("feedback:"));
 
+    await who(student);
+    await rpc("join", first.code);
+    const legacyId = "feedback:" + uid();
+    await rpc(
+      "post_message",
+      first.room,
+      legacyId.slice("feedback:".length),
+      "Un message envoyé avant la mise à jour.",
+      null,
+      null,
+      firstDoc.rows.meta.data.people[0].id,
+      null,
+      false,
+    );
+    await db.exec("reset role");
+    for (const file of files.slice(moderationIndex))
+      await db.exec(await readFile("supabase/migrations/" + file, "utf8"));
+
     await who(outsider);
     assert.equal(await rpc("program_read", show), null);
     assert.equal(await rpc("read", second.room), null);
@@ -278,6 +299,26 @@ test("Conducteur complet, accès cloisonnés, progression et retours enseignants
     );
     const own = await rpc("read", first.room);
     assert.equal(own.rows.meta.data.speed, 170);
+    const legacy = own.rows[legacyId];
+    assert.equal(legacy.owned, undefined);
+    const change = (key, revision, text, important = false) =>
+      rpc("change_comment", first.room, key, revision, text, important);
+    const unreadCount = async () =>
+      (await rpc("program_read", show)).items.find(({ id }) => id === first.id)
+        .unreadMessages;
+    await assert.rejects(
+      change(legacyId, legacy.rev, null),
+      /que tu as envoyés/,
+    );
+    await who(teacher);
+    assert.equal(await unreadCount(), 1);
+    await change(legacyId, legacy.rev, null);
+    assert.equal(await unreadCount(), 0);
+    await who(student);
+    assert.equal(
+      (await rpc("read", first.room)).rows[legacyId].data.text,
+      undefined,
+    );
     const originalPeople = own.rows.meta.data.people;
     const renamedPeople = originalPeople.map((person, i) =>
       i === 0 ? { ...person, name: "Alicia" } : person,
@@ -320,8 +361,9 @@ test("Conducteur complet, accès cloisonnés, progression et retours enseignants
       /protégé/,
     );
 
-    const [commentId, comment] = Object.entries(own.rows).find(([key]) =>
-      key.startsWith("feedback:"),
+    const [commentId, comment] = Object.entries(own.rows).find(
+      ([key, row]) =>
+        key.startsWith("feedback:") && row.data.block === block.id,
     );
     const [alice, benoit] = originalPeople.map((person) => person.id);
     const otherSpeaker = secondDoc.rows.meta.data.people[0].id;
@@ -387,6 +429,8 @@ test("Conducteur complet, accès cloisonnés, progression et retours enseignants
     assert.equal(reply.data.block, block.id);
     assert.equal(reply.data.role, "student");
     assert.equal(reply.data.sender, alice);
+    assert.equal(reply.owned, true);
+    assert.deepEqual(Object.keys(reply).sort(), ["data", "owned", "rev"]);
     await post(first.room, { id: replyId, parent: commentId });
     assert.equal((await rpc("read", first.room)).version, afterReply.version);
 
@@ -396,17 +440,43 @@ test("Conducteur complet, accès cloisonnés, progression et retours enseignants
       text: "Peux-tu relire l’introduction ?",
       recipient: benoit,
     });
-    const unreadCount = async () =>
-      (await rpc("program_read", show)).items.find(({ id }) => id === first.id)
-        .unreadMessages;
+    const directKey = "feedback:" + directId;
+    const directBefore = (await rpc("read", first.room)).rows[directKey];
+    assert.equal(directBefore.owned, true);
+    await assert.rejects(
+      change(directKey, directBefore.rev, "Prioritaire", true),
+      /enseignant/,
+    );
+    await change(
+      directKey,
+      directBefore.rev,
+      "Relis notre introduction, s’il te plaît.",
+    );
+    const directEdited = (await rpc("read", first.room)).rows[directKey];
+    assert.equal(directEdited.data.edited, true);
+    assert.equal(directEdited.data.recipient, benoit);
+    await assert.rejects(
+      change(directKey, directBefore.rev, null),
+      /message a changé/,
+    );
     assert.equal(await unreadCount(), null);
     await who(teammate);
     await rpc("join", first.code);
-    const received = (await rpc("read", first.room)).rows[
-      "feedback:" + directId
-    ].data;
-    assert.equal(received.recipient, benoit);
-    assert.equal(received.text, "Peux-tu relire l’introduction ?");
+    const received = (await rpc("read", first.room)).rows[directKey];
+    assert.equal(received.owned, undefined);
+    assert.equal(received.data.recipient, benoit);
+    assert.equal(
+      received.data.text,
+      "Relis notre introduction, s’il te plaît.",
+    );
+    await assert.rejects(
+      change(directKey, received.rev, "Changement par un camarade"),
+      /que tu as envoyés/,
+    );
+    await assert.rejects(
+      change(directKey, received.rev, null),
+      /que tu as envoyés/,
+    );
     await who(outsider);
     await rpc("join", second.code);
     const otherGroupView = await rpc("read", first.room);
@@ -434,15 +504,8 @@ test("Conducteur complet, accès cloisonnés, progression et retours enseignants
     await rpc("mark_feedback_read", first.room, afterReply.version);
     assert.equal(await unreadCount(), 0);
     await assert.rejects(
-      rpc(
-        "change_comment",
-        first.room,
-        "feedback:" + replyId,
-        reply.rev,
-        null,
-        false,
-      ),
-      /commentaire a changé/,
+      change("feedback:" + replyId, reply.rev, "Changement par l’enseignant"),
+      /supprimer ce message d’élève/,
     );
     await rpc(
       "change_comment",
@@ -458,7 +521,7 @@ test("Conducteur complet, accès cloisonnés, progression et retours enseignants
     assert.equal(corrected.data.edited, true);
     await assert.rejects(
       rpc("change_comment", first.room, commentId, comment.rev, null, false),
-      /commentaire a changé/,
+      /message a changé/,
     );
     await rpc(
       "change_comment",
@@ -476,8 +539,19 @@ test("Conducteur complet, accès cloisonnés, progression et retours enseignants
       afterDeletion.rows["feedback:" + replyId].data.text,
       "Notre réponse",
     );
+    await change(directKey, directEdited.rev, null);
+    assert.equal(
+      (await rpc("read", first.room)).rows[directKey].data.text,
+      undefined,
+    );
 
     await who(teacher);
+    await change("feedback:" + replyId, reply.rev, null);
+    const moderatedReply = (await rpc("read", first.room)).rows[
+      "feedback:" + replyId
+    ];
+    assert.equal(moderatedReply.data.deleted, true);
+    assert.equal(moderatedReply.data.text, undefined);
     await rpc("program_archive", show, second.id, true);
     await who(student);
     assert.equal(await rpc("read", second.room), null);

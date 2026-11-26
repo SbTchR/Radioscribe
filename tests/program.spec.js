@@ -41,6 +41,7 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
   const student = await browser.newContext();
   const teammate = await browser.newContext();
   const recovery = await browser.newContext();
+  const betterTranscription = "Meilleure transcription (mais plus lente)";
   try {
     for (const context of [teacher, teammate]) {
       await context.route("https://huggingface.co/**", (route) =>
@@ -170,10 +171,14 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
     await joinGroup(partner, baseURL, code, "Benoît");
     await expect(pupil.locator(".meter")).toContainText("170 mots/min");
     await expect(pupil.locator(".speechstate")).toContainText("Large v3 Turbo");
+    await expect(button(pupil, betterTranscription)).toHaveCount(0);
     await button(pupil, "Transcription trop lente / bug").click();
     await expect(pupil.locator(".speechstate")).toContainText(
       "Small multilingue",
     );
+    await button(pupil, betterTranscription).click();
+    await expect(pupil.locator(".speechstate")).toContainText("Large v3 Turbo");
+    await button(pupil, "Transcription trop lente / bug").click();
     await writeReply(
       pupil,
       "Alice",
@@ -254,6 +259,11 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
     await expect(
       pupilDiscussion.locator(".message-dictation-status"),
     ).toContainText("Base multilingue");
+    await button(pupilDiscussion, betterTranscription).click();
+    await expect(
+      pupilDiscussion.locator(".message-dictation-status"),
+    ).toContainText("Small multilingue");
+    await button(pupilDiscussion, "Transcription trop lente / bug").click();
     await button(pupilDiscussion, "Dicter le message").click();
     await expect(
       pupilDiscussion.locator(".message-dictation-status"),
@@ -282,6 +292,8 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
       .filter({ hasText: "Peux-tu relire notre introduction ?" });
     await expect(partnerThread).toContainText("Alicia", { timeout: 25000 });
     await expect(partnerThread).toContainText("→ Benoît");
+    await expect(button(partnerThread, "Modifier le message")).toHaveCount(0);
+    await expect(button(partnerThread, "Supprimer le message")).toHaveCount(0);
     await button(partnerThread, "Répondre").click();
     await partnerThread
       .getByLabel("Ta réponse")
@@ -290,6 +302,25 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
     await expect(partnerThread.locator(".message-replies")).toContainText(
       "Je la relis maintenant.",
     );
+
+    const directThread = (dialog) =>
+      dialog
+        .locator(".feedback-list > li")
+        .filter({ hasText: "Je la relis maintenant." });
+    const pupilThread = directThread(pupilDiscussion);
+    await button(pupilThread, "Modifier le message").click({ timeout: 25000 });
+    const edited = pupilThread.getByRole("textbox", {
+      name: "Modifier le message",
+    });
+    await expect(edited).toHaveValue("Peux-tu relire notre introduction ?");
+    await edited.fill("Peux-tu relire toute notre introduction ?");
+    await button(pupilThread, "Enregistrer le message").click();
+    const partnerDiscussion = partner.getByRole("dialog");
+    await expect(directThread(partnerDiscussion)).toContainText(
+      "Peux-tu relire toute notre introduction ?",
+      { timeout: 25000 },
+    );
+    await expect(directThread(partnerDiscussion)).toContainText("Modifié");
 
     const notice = button(cue(prof, "Le relief"), "3 nouveaux messages");
     await expect(notice).toBeVisible({ timeout: 25000 });
@@ -300,7 +331,7 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
       name: "Messages à l’équipe",
     });
     await expect(teacherDiscussion).toContainText(
-      "Peux-tu relire notre introduction ?",
+      "Peux-tu relire toute notre introduction ?",
     );
     await expect(teacherDiscussion).toContainText("Je la relis maintenant.");
     const comment = teacherDiscussion
@@ -324,6 +355,21 @@ test("Émission à quatre, échanges de groupe, notifications et animation", asy
       "Précisez où se trouve le Cervin.",
     );
     await expect(pupilDiscussion).toContainText("Nous avons choisi le Cervin.");
+    const teacherThread = directThread(teacherDiscussion);
+    await expect(button(teacherThread, "Modifier le message")).toHaveCount(0);
+    await button(pupilThread, "Supprimer le message").click();
+    await button(pupilThread, "Confirmer la suppression").click();
+    await expect(teacherThread).toContainText("Message supprimé", {
+      timeout: 25000,
+    });
+    await expect(teacherThread).not.toContainText(
+      "Peux-tu relire toute notre introduction ?",
+    );
+    await button(teacherThread, "Supprimer le message").click();
+    await button(teacherThread, "Confirmer la suppression").click();
+    await expect(directThread(partnerDiscussion)).toHaveCount(0, {
+      timeout: 25000,
+    });
     await pupil.setViewportSize({ width: 390, height: 844 });
     expect(
       await pupilDiscussion.evaluate(

@@ -9,7 +9,7 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
-import { DictationFallback, Modal } from "./ui.jsx";
+import { DictationModelControls, Modal } from "./ui.jsx";
 import { models } from "./models.js";
 import { rpc } from "./store.js";
 import {
@@ -21,11 +21,13 @@ import {
 import "./feedback.css";
 
 export const messageDictationPrefix = "message-dictation:";
+const messageKind = (entry) =>
+  entry.role === "student" ? "message" : "commentaire";
 
 export function feedbackEntries(rows) {
   return Object.entries(rows)
     .filter(([key]) => key.startsWith("feedback:"))
-    .map(([id, { rev, data }]) => ({ ...data, id, rev }))
+    .map(([id, { rev, data, owned }]) => ({ ...data, id, rev, owned }))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
@@ -56,7 +58,7 @@ function MessageDictation({ target, speech, pending, onText }) {
             Annuler la dictée
           </button>
         )}
-        {(!pending || ownsSpeech) && <DictationFallback speech={speech} />}
+        {(!pending || ownsSpeech) && <DictationModelControls speech={speech} />}
       </div>
       {(!pending || ownsSpeech) && (
         <small className="message-dictation-status" role="status">
@@ -109,16 +111,16 @@ function MessageForm({
     "preview",
   ].includes(speech.phase);
   const dictating = speech.target === dictationTarget && speechPending;
-  const showRecipient = !manager && !parent;
+  const showRecipient = !manager && !parent && !edit;
   const label = edit
-    ? "Modifier le commentaire"
+    ? "Modifier le " + messageKind(edit)
     : parent
       ? "Ta réponse"
       : block
         ? "Ton commentaire"
         : "Ton message";
   const submitLabel = edit
-    ? "Enregistrer le commentaire"
+    ? "Enregistrer le " + messageKind(edit)
     : parent
       ? "Envoyer la réponse"
       : block
@@ -241,8 +243,9 @@ function MessageForm({
   );
 }
 
-function Message({ entry, name, manager, showBlock, edit, remove }) {
+function Message({ entry, name, showBlock, edit, remove }) {
   const student = entry.role === "student";
+  const kind = messageKind(entry);
   return (
     <article
       className="message"
@@ -261,32 +264,36 @@ function Message({ entry, name, manager, showBlock, edit, remove }) {
           <strong className="message-important">Important</strong>
         )}
         {entry.edited && !entry.deleted && <span>Modifié</span>}
-        {manager && !student && !entry.deleted && (
+        {(edit || remove) && (
           <div className="message-tools">
-            <button
-              type="button"
-              className="icon"
-              title="Modifier le commentaire"
-              aria-label="Modifier le commentaire"
-              onClick={edit}
-            >
-              <Pencil size={16} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              className="icon"
-              title="Supprimer le commentaire"
-              aria-label="Supprimer le commentaire"
-              onClick={remove}
-            >
-              <Trash2 size={16} aria-hidden="true" />
-            </button>
+            {edit && (
+              <button
+                type="button"
+                className="icon"
+                title={"Modifier le " + kind}
+                aria-label={"Modifier le " + kind}
+                onClick={edit}
+              >
+                <Pencil size={16} aria-hidden="true" />
+              </button>
+            )}
+            {remove && (
+              <button
+                type="button"
+                className="icon"
+                title={"Supprimer le " + kind}
+                aria-label={"Supprimer le " + kind}
+                onClick={remove}
+              >
+                <Trash2 size={16} aria-hidden="true" />
+              </button>
+            )}
           </div>
         )}
       </header>
       {entry.deleted ? (
         <p>
-          <em>Commentaire supprimé</em>
+          <em>{student ? "Message supprimé" : "Commentaire supprimé"}</em>
         </p>
       ) : (
         <p>{entry.text}</p>
@@ -395,11 +402,24 @@ function Discussion({
   }
 
   function renderEntry(entry) {
+    const student = entry.role === "student";
+    const canEdit =
+      !entry.deleted && (student ? !manager && entry.owned : manager);
+    const canRemove = !entry.deleted && (manager || (student && entry.owned));
+    function beginEdit() {
+      setEditing(entry);
+      setDeleting(null);
+    }
+    function beginDelete() {
+      setDeleteError("");
+      setDeleting(entry);
+    }
+
     return (
       <div key={entry.id}>
-        {editing?.id === entry.id ? (
+        {canEdit && editing?.id === entry.id ? (
           <MessageForm
-            manager
+            manager={manager}
             edit={editing}
             cancel={() => setEditing(null)}
             save={async ({ text, important }) => {
@@ -411,21 +431,14 @@ function Discussion({
           <Message
             entry={entry}
             name={name}
-            manager={manager}
             showBlock={!target && !!entry.block && !entry.parent}
-            edit={() => {
-              setEditing(entry);
-              setDeleting(null);
-            }}
-            remove={() => {
-              setDeleteError("");
-              setDeleting(entry);
-            }}
+            edit={canEdit ? beginEdit : undefined}
+            remove={canRemove ? beginDelete : undefined}
           />
         )}
-        {deleting?.id === entry.id && (
+        {canRemove && deleting?.id === entry.id && (
           <div className="message-deletion">
-            <p>Supprimer ce commentaire ?</p>
+            <p>Supprimer ce {messageKind(entry)} ?</p>
             {deleteError && (
               <p className="error" role="alert">
                 {deleteError}

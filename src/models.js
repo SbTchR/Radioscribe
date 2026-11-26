@@ -22,7 +22,7 @@ export const models = {
   },
 };
 
-export function lighterModel(model) {
+export function adjacentModel(model, step) {
   const tiers = Object.keys(models);
-  return tiers[tiers.indexOf(model) + 1];
+  return tiers[tiers.indexOf(model) + step];
 }

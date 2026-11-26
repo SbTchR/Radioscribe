@@ -750,16 +750,27 @@ button[aria-pressed="true"] {
   max-width: 100%;
   overflow-wrap: anywhere;
 }
-.dictation-fallback {
+.dictation-fallback,
+.dictation-upgrade {
   min-height: 32px;
   padding: 4px 8px;
+  font-size: 0.83rem;
+}
+.dictation-fallback {
   border-color: #e4c393;
   background: #fbecd5;
   color: #653c12;
-  font-size: 0.83rem;
 }
 .dictation-fallback:hover {
   background: #f7e3c4;
+}
+.dictation-upgrade {
+  border-color: #c2d8c5;
+  background: #eaf3e9;
+  color: var(--green);
+}
+.dictation-upgrade:hover {
+  background: #dcecdf;
 }
 .meter {
   display: grid;

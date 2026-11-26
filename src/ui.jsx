@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useRef } from "react";
-import { AudioLines, Wrench, X } from "lucide-react";
-import { lighterModel, models } from "./models.js";
+import { AudioLines, Sparkles, Wrench, X } from "lucide-react";
+import { adjacentModel, models } from "./models.js";
 import { loadModel } from "./speech.js";
 export function Brand({ onClick }) {
   return (
@@ -74,26 +74,44 @@ export function Voice({ name, color }) {
     </span>
   );
 }
-export function DictationFallback({ speech }) {
-  const next = lighterModel(speech.model);
-  if (!next) {
-    return speech.phase === "error" ? (
-      <button type="button" onClick={() => loadModel()}>
-        Recharger le modèle
-      </button>
-    ) : null;
-  }
+export function DictationModelControls({ speech }) {
+  const lighter = adjacentModel(speech.model, 1);
+  const better = adjacentModel(speech.model, -1);
+  const disabled = ["permission", "recording", "preview"].includes(
+    speech.phase,
+  );
   return (
-    <button
-      type="button"
-      className="dictation-fallback"
-      title={"Passer au modèle " + models[next].label}
-      disabled={["permission", "recording", "preview"].includes(speech.phase)}
-      onClick={() => loadModel(next)}
-    >
-      <Wrench size={15} aria-hidden="true" />
-      Transcription trop lente / bug
-    </button>
+    <>
+      {lighter && (
+        <button
+          type="button"
+          className="dictation-fallback"
+          title={"Passer au modèle " + models[lighter].label}
+          disabled={disabled}
+          onClick={() => loadModel(lighter)}
+        >
+          <Wrench size={15} aria-hidden="true" />
+          Transcription trop lente / bug
+        </button>
+      )}
+      {better && (
+        <button
+          type="button"
+          className="dictation-upgrade"
+          title={"Passer au modèle " + models[better].label}
+          disabled={disabled}
+          onClick={() => loadModel(better)}
+        >
+          <Sparkles size={15} aria-hidden="true" />
+          Meilleure transcription (mais plus lente)
+        </button>
+      )}
+      {!lighter && speech.phase === "error" && (
+        <button type="button" onClick={() => loadModel()}>
+          Recharger le modèle
+        </button>
+      )}
+    </>
   );
 }
 export const fmtCode = (code) =>

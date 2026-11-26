@@ -59,7 +59,7 @@ import {
   split,
   reorderReply,
 } from "./domain.js";
-import { Brand, DictationFallback, Modal, Voice, fmtCode } from "./ui.jsx";
+import { Brand, DictationModelControls, Modal, Voice, fmtCode } from "./ui.jsx";
 import {
   guidePrefix,
   SpeakingTime,
@@ -857,7 +857,7 @@ export function Workspace({
               </span>
               <Settings size={14} />
             </button>
-            <DictationFallback speech={speech} />
+            <DictationModelControls speech={speech} />
           </div>
           {!s.blocks.length && (
             <div className="emptydialogue">
