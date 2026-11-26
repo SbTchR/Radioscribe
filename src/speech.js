@@ -4,8 +4,9 @@ let worker,
   recording,
   request = 0,
   tick;
+const savedModel = localStorage.getItem("radio.model");
 let state = {
-  model: localStorage.getItem("radio.model") || "turbo",
+  model: Object.hasOwn(models, savedModel) ? savedModel : "turbo",
   phase: "idle",
   message: "",
   seconds: 0,
@@ -39,10 +40,17 @@ export function loadModel(model = state.model) {
     target: null,
   });
   try {
-    worker = new Worker(new URL("./speech.worker.js", import.meta.url), {
+    const engine = new Worker(new URL("./speech.worker.js", import.meta.url), {
       type: "module",
     });
-    worker.onmessage = ({ data: d }) => {
+    worker = engine;
+    function failed(message) {
+      request++;
+      disposeMic();
+      update({ phase: "error", message });
+    }
+    engine.onmessage = ({ data: d }) => {
+      if (worker !== engine) return;
       if (d.type === "progress")
         update({
           message:
@@ -54,7 +62,7 @@ export function loadModel(model = state.model) {
         });
       if (d.type === "ready")
         update({ phase: "ready", message: "Prêt à dicter", loadMs: d.ms });
-      if (d.type === "error") update({ phase: "error", message: d.message });
+      if (d.type === "error") failed(d.message);
       if (d.type === "result")
         update({
           phase: "preview",
@@ -63,12 +71,11 @@ export function loadModel(model = state.model) {
           inferenceMs: d.ms,
         });
     };
-    worker.onerror = (e) =>
-      update({
-        phase: "error",
-        message: e.message || "Le moteur de dictée a été interrompu.",
-      });
-    worker.postMessage({ type: "load", model });
+    engine.onerror = (e) => {
+      if (worker === engine)
+        failed(e.message || "Le moteur de dictée a été interrompu.");
+    };
+    engine.postMessage({ type: "load", model });
   } catch (e) {
     update({ phase: "error", message: e.message });
   }
@@ -161,6 +168,10 @@ export function cancelSpeech(reload = true) {
       result: null,
       message: "Prêt à dicter",
     });
+  else if (state.target) update({ target: null, result: null });
+}
+export function cancelSpeechFor(target) {
+  if (state.target === target) cancelSpeech();
 }
 export function useSpeech() {
   const [s, set] = useState(state);

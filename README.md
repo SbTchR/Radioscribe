@@ -11,7 +11,7 @@ Radioscribe accompagne des groupes de deux à quatre élèves dans l’écriture
 3. Cliquer sur un prénom, écrire ou dicter, puis corriger. Les icônes sous chaque réplique permettent de la diviser au curseur, de changer de voix ou de la supprimer. Le **+** ajoute une réplique juste après. Glisser la poignée et déposer sur le trait qui indique la destination. Au clavier, utiliser **↑** et **↓** sur la poignée.
 4. Cocher les pistes rédigées dans la colonne de droite. Ouvrir **SOS rédaction**, choisir une catégorie puis cliquer sur une amorce pour l’insérer au curseur. Sans réplique active, le clic copie l’amorce.
 5. Valider l’introduction et choisir les angles de la première partie. À la fin d’une partie, en ajouter une autre ou ouvrir la conclusion. La barre de structure permet de revenir sur une section validée.
-6. Ouvrir **Relire le script**. Faire la checklist, vérifier la dernière annonce musicale et répéter dans le téléprompteur. Dans **Préparer l’impression**, choisir le script commun, le script d’une personne ou toutes les versions personnalisées. Choisir ensuite l’imprimante ou **Enregistrer au format PDF** dans la fenêtre du navigateur. Désactiver ses en-têtes et pieds de page s’il ajoute l’URL.
+6. Ouvrir **La chronique est prête**. Faire la checklist, vérifier la dernière annonce musicale et répéter dans le téléprompteur. Dans **Préparer l’impression**, choisir le script commun, le script d’une personne ou toutes les versions personnalisées. Choisir ensuite l’imprimante ou **Enregistrer au format PDF** dans la fenêtre du navigateur. Désactiver ses en-têtes et pieds de page s’il ajoute l’URL.
 
 Le code donne accès au texte et à sa modification. Il se partage dans le groupe. Les invitations déjà distribuées restent utilisables. Les nouveaux scripts sont calculés à 170 mots par minute et les réglages de lecture déjà enregistrés sont conservés. L’aperçu d’impression accepte notamment les corps 11, 12 et 13 points. **Sur cet appareil** désigne un projet local au navigateur.
 
@@ -20,17 +20,18 @@ Le code donne accès au texte et à sa modification. Il se partage dans le group
 1. Choisir **Créer une émission**, donner son titre, indiquer le nombre de chroniques et choisir si l’émission est animée. Le conducteur prépare les jingles, les musiques, les chroniques et les séquences d’animation demandées.
 2. Attribuer les équipes en ouvrant **Modifier** sur les chroniques et les séquences d’animation. Donner un titre et une durée aux musiques et aux jingles. Utiliser **Ajouter une partie** et les flèches pour adapter l’ordre. Une partie retirée peut être rétablie depuis le conducteur.
 3. Conserver le **Lien de gestion** pour reprendre l’émission sur un autre navigateur. Partager chaque code à cinq caractères uniquement avec l’équipe qui rédige la chronique ou la séquence. Les équipes retrouvent les autres textes en lecture seule dans le conducteur.
-4. Ouvrir une partie pour écrire, suivre les durées estimées ou donner des retours. L’enseignant peut utiliser **Messages à l’équipe** ou l’icône de commentaire sous une réplique. Un retour marqué important déclenche une alerte en haut de l’éditeur de l’équipe.
+4. Ouvrir une partie pour écrire, suivre les durées estimées ou donner des retours. L’enseignant peut utiliser **Messages à l’équipe** ou l’icône de commentaire sous une réplique. Il peut modifier ou supprimer ses retours. Un retour marqué important déclenche une alerte dans l’éditeur du groupe et les nouveaux messages des élèves apparaissent à côté de la partie dans le conducteur.
+5. Dans **Messages du groupe**, les élèves peuvent répondre aux commentaires et choisir l’enseignant ou un camarade comme destinataire. Les membres du groupe et l’enseignant voient les échanges. **Dicter le message** permet de relire et corriger la transcription avant de l’envoyer.
 
 Le conducteur des émissions partagées utilise Supabase. Les durées de chroniques et d’animations sont estimées à partir des répliques enregistrées. Les jingles et les morceaux sont renseignés en minutes et secondes.
 
-Dans l’éditeur, **Modifier les prénoms** permet à l’enseignant et aux membres du groupe de renommer leurs voix. Les textes déjà attribués suivent le prénom corrigé jusque dans le conducteur et le PDF.
+Dans l’éditeur, cliquer sur un prénom pour le corriger. Les textes déjà attribués suivent le prénom corrigé jusque dans le conducteur et le PDF.
 
 ## Dictée et essai sur les MacBook
 
 À l’entrée dans l’atelier, un worker prépare **Whisper Large v3 Turbo**. Il télécharge depuis Hugging Face les poids ONNX épinglés dans `src/models.js`. Prévoir un premier chargement volumineux (plus d’un Go pour Turbo). La progression indique des octets par fichier. Le navigateur peut réutiliser son cache selon l’espace disponible. Le clavier est disponible pendant le téléchargement.
 
-Turbo utilise WebGPU, un encodeur FP16 et un décodeur Q4. Dans les réglages de dictée on peut choisir explicitement **Small** ou **Base**, multilingues et quantifiés Q8, sur CPU/WASM. Le microphone est ouvert uniquement après **Enregistrer**. Les échantillons mono à 16 kHz transitent entre l’AudioWorklet et le worker local. Après **Arrêter et transcrire**, écouter n’est pas nécessaire : le texte proposé peut être accepté ou annulé. Seul le texte accepté rejoint le script. Les pistes micro sont fermées à l’arrêt, à l’annulation ou à la sortie. Aucune API de reconnaissance distante ni télémétrie audio.
+Turbo utilise WebGPU, un encodeur FP16 et un décodeur Q4. **Transcription trop lente / bug** passe à **Small**, puis à **Base** si le problème continue. Le choix est mémorisé sur l’appareil. Ces modèles multilingues et quantifiés Q8 fonctionnent sur CPU/WASM. Les échantillons mono à 16 kHz transitent entre l’AudioWorklet et le worker local. Après **Arrêter et transcrire**, le texte proposé peut être accepté ou annulé. Les pistes micro sont fermées à l’arrêt, à l’annulation ou à la sortie.
 
 Pour évaluer les machines de l’école :
 

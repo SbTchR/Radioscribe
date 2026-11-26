@@ -18,6 +18,7 @@ import {
   GripVertical,
   LifeBuoy,
   Mic,
+  Pencil,
   Plus,
   Scissors,
   Settings,
@@ -58,7 +59,7 @@ import {
   split,
   reorderReply,
 } from "./domain.js";
-import { Brand, Modal, Voice, fmtCode } from "./ui.jsx";
+import { Brand, DictationFallback, Modal, Voice, fmtCode } from "./ui.jsx";
 import {
   guidePrefix,
   SpeakingTime,
@@ -67,7 +68,11 @@ import {
 } from "./workshop-aids.jsx";
 import { useReplyDrag } from "./reply-drag.js";
 import { Review } from "./output.jsx";
-import { Feedback, feedbackEntries } from "./feedback.jsx";
+import {
+  Feedback,
+  feedbackEntries,
+  messageDictationPrefix,
+} from "./feedback.jsx";
 import { animationGuides } from "./animation.js";
 import { Drafts } from "./drafts.js";
 import { models } from "./models.js";
@@ -166,25 +171,18 @@ function ReplyAction({ label, icon: Icon, tone, children, ...props }) {
     </button>
   );
 }
-function SpeakerNames({ people, animation, save, close }) {
-  const [original] = useState(people);
+function SpeakerName({ original, save, close }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   async function submit(event) {
     event.preventDefault();
-    const fields = new FormData(event.currentTarget);
-    const names = original.map((person) => fields.get(person.id).trim());
+    const name = new FormData(event.currentTarget).get("name").trim();
     setBusy(true);
     setError("");
     try {
-      if (names.some((name) => !name))
-        throw Error("Indique un prénom pour chaque voix.");
-      if (
-        new Set(names.map((name) => name.toLowerCase())).size !== names.length
-      )
-        throw Error("Distingue les prénoms, par exemple avec une initiale.");
-      await save(original, names);
+      if (!name) throw Error("Indique un prénom.");
+      await save(original, name);
       close();
     } catch (e) {
       setError(e.message);
@@ -194,38 +192,38 @@ function SpeakerNames({ people, animation, save, close }) {
   }
 
   return (
-    <Modal
-      title={animation ? "Prénoms des animateurs" : "Prénoms des chroniqueurs"}
-      close={close}
-    >
+    <Modal title={"Modifier le prénom de " + original.name} close={close}>
       <form onSubmit={submit}>
-        {original.map((person, index) => (
-          <label key={person.id}>
-            Prénom {index + 1}
-            <input
-              autoFocus={index === 0}
-              required
-              maxLength={40}
-              name={person.id}
-              defaultValue={person.name}
-              style={{ borderLeft: "4px solid " + colors[index] }}
-            />
-          </label>
-        ))}
+        <label>
+          Prénom
+          <input
+            autoFocus
+            required
+            maxLength={40}
+            name="name"
+            defaultValue={original.name}
+          />
+        </label>
         {error && (
           <p className="error" role="alert">
             {error}
           </p>
         )}
         <button className="primary" disabled={busy}>
-          Enregistrer les prénoms
+          Enregistrer le prénom
         </button>
       </form>
     </Modal>
   );
 }
 
-export function Workspace({ room, identity, leave, openProgram }) {
+export function Workspace({
+  room,
+  identity,
+  leave,
+  openProgram,
+  openMessages,
+}) {
   const snapshot = useSyncExternalStore(room.subscribe, () => room.snapshot);
   const { rows, context } = snapshot,
     m = rows.meta.data;
@@ -236,10 +234,11 @@ export function Workspace({ room, identity, leave, openProgram }) {
   const [section, setSection] = useState("intro"),
     [active, setActive] = useState(null),
     [view, setView] = useState("edit"),
-    [modal, setModal] = useState(""),
+    [modal, setModal] = useState(openMessages ? "feedback" : ""),
     [error, setError] = useState(""),
     [msg, setMsg] = useState(""),
-    [feedbackTarget, setFeedbackTarget] = useState(null),
+    [discussion, setDiscussion] = useState({ block: null, replyTo: null }),
+    [renaming, setRenaming] = useState(null),
     [replyPicker, setReplyPicker] = useState(null);
   const nodes = useRef({}),
     structureAtOpen = useRef(null),
@@ -283,7 +282,12 @@ export function Workspace({ room, identity, leave, openProgram }) {
     room.track(identity, activeReply);
   }, [identity, activeReply]);
   useEffect(() => {
-    if (protectedSpeech && speech.target && !rows[speech.target])
+    if (
+      protectedSpeech &&
+      speech.target &&
+      !speech.target.startsWith(messageDictationPrefix) &&
+      !rows[speech.target]
+    )
       cancelSpeech();
   }, [rows, protectedSpeech, speech.target]);
   useEffect(() => {
@@ -306,31 +310,30 @@ export function Workspace({ room, identity, leave, openProgram }) {
       return true;
     });
   }
-  async function saveNames(original, names) {
+  async function saveName(original, name) {
+    await room.sync();
     const latest = room.rows.meta.data;
+    const speaker = latest.people.find((person) => person.id === original.id);
+    if (speaker?.name !== original.name)
+      throw Error(
+        "Ce prénom a changé sur un autre appareil. Clique à nouveau dessus pour voir la version à jour.",
+      );
+    if (speaker.name === name) return;
     if (
-      latest.people.length !== original.length ||
       latest.people.some(
-        (person, index) =>
-          person.id !== original[index].id ||
-          person.name !== original[index].name,
+        (p) =>
+          p.id !== speaker.id && p.name.toLowerCase() === name.toLowerCase(),
       )
     )
-      throw Error(
-        "L’équipe a changé sur un autre appareil. Rouvre les prénoms pour voir la version à jour.",
-      );
-
-    if (latest.people.every((person, index) => person.name === names[index]))
-      return;
-    const people = latest.people.map((person, index) => ({
-      ...person,
-      name: names[index],
-    }));
+      throw Error("Distingue les prénoms, par exemple avec une initiale.");
+    const people = latest.people.map((person) =>
+      person.id === speaker.id ? { ...person, name } : person,
+    );
     await room.save(
       transaction(
         room.rows,
         { meta: { ...latest, people } },
-        "Renommer les voix",
+        "Modifier un prénom",
       ),
     );
   }
@@ -371,8 +374,8 @@ export function Workspace({ room, identity, leave, openProgram }) {
       destination();
     });
   }
-  function showFeedback(block) {
-    setFeedbackTarget(block);
+  function showFeedback(block, replyTo = null) {
+    setDiscussion({ block, replyTo });
     setModal("feedback");
   }
   const display = sectionName(m, sid, s);
@@ -647,13 +650,16 @@ export function Workspace({ room, identity, leave, openProgram }) {
       )}
     </>
   );
-  const feedbackPanel = context?.showId && (
+  const feedbackPanel = context?.showId && context.editable && (
     <Feedback
       room={room}
+      version={snapshot.version}
       identity={identity}
       manager={context.manager}
+      people={m.people}
       entries={feedback}
-      target={feedbackTarget}
+      target={discussion.block}
+      initialReply={discussion.replyTo}
       open={modal === "feedback"}
       show={showFeedback}
       close={() => setModal("")}
@@ -700,27 +706,29 @@ export function Workspace({ room, identity, leave, openProgram }) {
           <h2>{m.title}</h2>
           <div className="voices">
             {m.people.map((p) => (
-              <span
+              <button
+                type="button"
                 key={p.id}
-                title={
-                  snapshot.peers.some((v) => v.person === p.id) ||
-                  p.id === identity
-                    ? "Connecté"
-                    : "Chroniqueur"
-                }
+                className="voice-edit"
+                title={"Modifier le prénom de " + p.name}
+                aria-label={"Modifier le prénom de " + p.name}
+                aria-haspopup="dialog"
+                onClick={() => {
+                  setRenaming(p);
+                  setModal("speaker");
+                }}
               >
                 {voice(p.id)}
+                <Pencil size={13} aria-hidden="true" />
                 {(snapshot.peers.some((v) => v.person === p.id) ||
-                  p.id === identity) && <b className="online">●</b>}
-              </span>
+                  p.id === identity) && (
+                  <b className="online" title="Connecté">
+                    ●
+                  </b>
+                )}
+              </button>
             ))}
           </div>
-          <button
-            className="edit-speakers"
-            onClick={() => setModal("speakers")}
-          >
-            <UserRoundPen aria-hidden="true" /> Modifier les prénoms
-          </button>
           <hr />
           {context?.showId && (
             <button
@@ -756,7 +764,7 @@ export function Workspace({ room, identity, leave, openProgram }) {
             }
           >
             <BookOpen />
-            Relire le script
+            {animation ? "L’animation est prête" : "La chronique est prête"}
           </button>
           <div className="sidebarbottom">
             <button onClick={() => run(() => room.undo())}>
@@ -835,6 +843,22 @@ export function Workspace({ room, identity, leave, openProgram }) {
               </button>
             </div>
           </div>
+          <div className="dictation-tools">
+            <button
+              className="speechstate"
+              onClick={() => setModal("settings")}
+            >
+              <Mic size={15} />
+              <span>
+                {models[speech.model].label} ·{" "}
+                {speech.phase === "error"
+                  ? "Dictée indisponible"
+                  : speech.message || "Préparation de la dictée"}
+              </span>
+              <Settings size={14} />
+            </button>
+            <DictationFallback speech={speech} />
+          </div>
           {!s.blocks.length && (
             <div className="emptydialogue">
               <Mic />
@@ -848,7 +872,15 @@ export function Workspace({ room, identity, leave, openProgram }) {
             {s.blocks.map((id, index) => {
               const b = working[id].data;
               const live = protectedSpeech && recordingId === id;
-              const comments = feedback.filter((entry) => entry.block === id);
+              const exchanges = feedback.filter((entry) => entry.block === id);
+              const comments = exchanges.filter(
+                (entry) =>
+                  !entry.parent &&
+                  (!entry.deleted ||
+                    exchanges.some(
+                      (reply) => reply.parent === entry.id && !reply.deleted,
+                    )),
+              );
               const recordLabel = b.text ? "Redicter" : "Enregistrer";
               const marker = drag.indicator?.drop;
               const peers = snapshot.peers
@@ -1024,7 +1056,27 @@ export function Workspace({ room, identity, leave, openProgram }) {
                               ? "Commentaire important"
                               : "Commentaire de l’enseignant"}
                           </strong>
-                          <p>{entry.text}</p>
+                          <p>
+                            {entry.deleted ? (
+                              <em>Commentaire supprimé</em>
+                            ) : (
+                              entry.text
+                            )}
+                          </p>
+                          <button
+                            type="button"
+                            className="reply-to-message"
+                            onClick={() =>
+                              showFeedback(
+                                id,
+                                context.manager ? null : entry.id,
+                              )
+                            }
+                          >
+                            {context.manager
+                              ? "Voir la discussion"
+                              : "Répondre"}
+                          </button>
                         </li>
                       ))}
                     </ul>
@@ -1048,15 +1100,6 @@ export function Workspace({ room, identity, leave, openProgram }) {
               ))}
             </div>
           </div>
-          <button className="speechstate" onClick={() => setModal("settings")}>
-            <Mic size={15} />
-            <span>
-              {speech.phase === "error"
-                ? "Dictée indisponible · voir les réglages"
-                : speech.message || "Préparation de la dictée"}
-            </span>
-            <Settings size={14} />
-          </button>
           <div className="validation">
             {s.kind === "part" && s.done ? (
               <div className="actions">
@@ -1179,11 +1222,10 @@ export function Workspace({ room, identity, leave, openProgram }) {
           </div>
         </Modal>
       )}
-      {modal === "speakers" && (
-        <SpeakerNames
-          people={m.people}
-          animation={animation}
-          save={saveNames}
+      {modal === "speaker" && (
+        <SpeakerName
+          original={renaming}
+          save={saveName}
           close={() => setModal("")}
         />
       )}

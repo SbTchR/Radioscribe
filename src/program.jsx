@@ -10,6 +10,7 @@ import {
   Copy,
   FileText,
   KeyRound,
+  MessageCircle,
   Mic,
   Music,
   Pencil,
@@ -321,9 +322,9 @@ export function ProgramBoard({ id, home, enter }) {
   const archived = program?.items.filter((item) => item.archived) || [];
   const seconds = activeItems.reduce((total, item) => total + item.seconds, 0);
   const untimed = activeItems.filter((item) => !item.seconds).length;
-  const openScript = (item) =>
+  const openScript = (item, messages = false) =>
     item.editable
-      ? act(() => enter(item.room, program.manager))
+      ? act(() => enter(item.room, program.manager, messages))
       : setPreview(item);
   return (
     <>
@@ -428,6 +429,19 @@ export function ProgramBoard({ id, home, enter }) {
                       <span className="cue-seconds">
                         {item.seconds ? time(item.seconds) : "Durée à préciser"}
                       </span>
+                      {program.manager && item.unreadMessages > 0 && (
+                        <button
+                          type="button"
+                          className="cue-unread"
+                          disabled={busy}
+                          onClick={() => openScript(item, true)}
+                        >
+                          <MessageCircle size={15} aria-hidden="true" />
+                          {item.unreadMessages === 1
+                            ? "1 nouveau message"
+                            : item.unreadMessages + " nouveaux messages"}
+                        </button>
+                      )}
                     </div>
                     <div className="cue-actions">
                       {item.code && !item.archived && (

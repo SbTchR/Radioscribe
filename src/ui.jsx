@@ -1,5 +1,7 @@
 import React, { useEffect, useId, useRef } from "react";
-import { AudioLines, X } from "lucide-react";
+import { AudioLines, Wrench, X } from "lucide-react";
+import { lighterModel, models } from "./models.js";
+import { loadModel } from "./speech.js";
 export function Brand({ onClick }) {
   return (
     <button
@@ -70,6 +72,28 @@ export function Voice({ name, color }) {
       <i />
       {name}
     </span>
+  );
+}
+export function DictationFallback({ speech }) {
+  const next = lighterModel(speech.model);
+  if (!next) {
+    return speech.phase === "error" ? (
+      <button type="button" onClick={() => loadModel()}>
+        Recharger le modèle
+      </button>
+    ) : null;
+  }
+  return (
+    <button
+      type="button"
+      className="dictation-fallback"
+      title={"Passer au modèle " + models[next].label}
+      disabled={["permission", "recording", "preview"].includes(speech.phase)}
+      onClick={() => loadModel(next)}
+    >
+      <Wrench size={15} aria-hidden="true" />
+      Transcription trop lente / bug
+    </button>
   );
 }
 export const fmtCode = (code) =>

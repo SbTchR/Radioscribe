@@ -162,6 +162,18 @@
   font-size: 0.82rem;
   color: var(--muted);
 }
+.cue-unread {
+  min-height: 29px;
+  padding: 3px 7px;
+  color: var(--violet);
+  border-color: #ded2ef;
+  background: #f2edf8;
+  font-size: 0.75rem;
+  text-align: start;
+}
+.cue-unread:hover {
+  background: #eae1f6;
+}
 .cue-actions,
 .cue-management {
   display: flex;

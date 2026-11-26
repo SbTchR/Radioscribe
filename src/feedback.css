@@ -41,9 +41,56 @@
 .feedback-alert button {
   font-size: 0.8rem;
 }
-.feedback form textarea {
+dialog.feedback-dialog {
+  width: min(96vw, 760px);
+  padding: clamp(14px, 3vw, 26px);
+  border-top: 4px solid var(--violet);
+}
+.feedback-notice {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  background: #f2edf8;
+  color: var(--violet);
+  border-radius: 7px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+}
+.feedback-notice svg {
+  flex: 0 0 auto;
+}
+.message-form > label {
+  margin-block: 0 10px;
+}
+.message-form textarea {
   width: 100%;
   margin-top: 5px;
+  resize: vertical;
+}
+.message-recipient select {
+  width: fit-content;
+}
+.message-dictation {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+.message-dictation .actions button {
+  min-height: 32px;
+  font-size: 0.82rem;
+}
+.message-dictation-status {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.message-transcript {
+  background: #eaf1f6;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.message-transcript p {
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
 }
 .feedback-important {
   display: flex;
@@ -65,22 +112,71 @@
   display: grid;
   gap: 8px;
 }
-.feedback-list li,
+.feedback-list > li {
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.message,
 .reply-comments li {
   border-inline-start: 3px solid var(--violet);
   border-radius: 5px;
   background: #f0ebf6;
   padding: 8px 10px;
   overflow-wrap: anywhere;
-  white-space: pre-wrap;
   font-size: 0.9rem;
 }
-.feedback-list li[data-important="true"] {
+.message[data-role="student"] {
+  border-color: #40778e;
+  background: #ecf4f7;
+}
+.message[data-important="true"] {
   border-color: var(--ochre);
   background: #fbecd5;
 }
-.feedback-list li p {
+.message header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+.message header > span {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.message-important {
+  color: #653c12;
+}
+.message-tools {
+  display: flex;
+  gap: 4px;
+  margin-inline-start: auto;
+}
+.message-tools .icon {
+  color: var(--violet);
+}
+.message p {
   margin: 4px 0 0;
+  white-space: pre-wrap;
+}
+.message-replies {
+  display: grid;
+  gap: 6px;
+  margin: 7px 0 0 clamp(8px, 3vw, 24px);
+}
+.feedback-list .message-form,
+.message-deletion {
+  margin-top: 8px;
+}
+.message-deletion p {
+  margin-bottom: 5px;
+}
+.reply-to-message {
+  margin-top: 5px;
+  min-height: 30px;
+  padding: 3px 7px;
+  font-size: 0.81rem;
+  color: var(--violet);
 }
 .reply-comments strong {
   color: var(--violet);
@@ -88,6 +184,7 @@
 }
 .reply-comments p {
   margin: 2px 0 0;
+  white-space: pre-wrap;
 }
 .program-back {
   color: var(--violet);

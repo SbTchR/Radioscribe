@@ -130,7 +130,7 @@ test("Du dialogue à la répétition et au PDF personnalisé", async ({
   await btn(page, "Rejoindre le groupe").click();
   await btn(page, "Noah").click();
   await expect(amorce).toBeChecked();
-  await btn(page, "Relire le script").click();
+  await btn(page, "La chronique est prête").click();
   await expect(page.locator(".line")).toHaveCount(5);
 });
 test("Accueil mobile et création à quatre", async ({ page }) => {
@@ -221,7 +221,7 @@ test("Chronique longue, réorganisation et impression sur plusieurs pages", asyn
   await expect(page.locator(".block textarea")).toHaveValue(
     "Le train arrive à Lausanne.",
   );
-  await btn(page, "Relire le script").click();
+  await btn(page, "La chronique est prête").click();
   await btn(page, "Préparer l’impression").click();
   await page
     .getByRole("combobox", { name: "Version", exact: true })

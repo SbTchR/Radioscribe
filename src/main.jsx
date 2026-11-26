@@ -97,6 +97,7 @@ function App() {
   const [count, setCount] = useState(2);
   const [room, setRoom] = useState(null);
   const [identity, setIdentity] = useState(null);
+  const [openMessages, setOpenMessages] = useState(false);
   const [program, setProgram] = useState(initialLink.get("emission"));
   const [busy, setBusy] = useState(!!managementLink);
   const [error, setError] = useState("");
@@ -108,6 +109,7 @@ function App() {
     room?.close();
     setRoom(null);
     setIdentity(null);
+    setOpenMessages(false);
   }
   function showProgram(id) {
     closeRoom();
@@ -140,12 +142,13 @@ function App() {
     history.replaceState(null, "", "#code=" + r.state.code);
     window.scrollTo(0, 0);
   }
-  function enter(id, pick, resume = false) {
+  function enter(id, pick, resume = false, messages = false) {
     const next = new Room(id);
     const savedIdentity = resume
       ? sessionStorage.getItem("radio.person." + id)
       : null;
     setRoom(next);
+    setOpenMessages(messages);
     if (!pick) identify(next, next.rows.meta.data.people[0].id);
     else if (
       savedIdentity &&
@@ -195,6 +198,7 @@ function App() {
         key={room.id}
         room={room}
         identity={identity}
+        openMessages={openMessages}
         leave={() => (program ? showProgram(program) : home())}
         openProgram={showProgram}
       />
@@ -214,8 +218,8 @@ function App() {
           key={program}
           id={program}
           home={home}
-          enter={async (id, manager) =>
-            enter(await openSharedRoom(id), !manager, true)
+          enter={async (id, manager, messages) =>
+            enter(await openSharedRoom(id), !manager, true, messages)
           }
         />
         {picker}

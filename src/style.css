@@ -462,18 +462,17 @@ button[aria-pressed="true"] {
   gap: 5px;
   margin: 10px 0;
 }
-.edit-speakers {
-  align-self: start;
-  margin-top: 10px;
+.voices .voice-edit {
   min-height: 32px;
-  padding: 5px 7px;
-  color: var(--violet);
-  border-color: transparent;
-  background: transparent;
-  font-size: 0.79rem;
+  padding: 2px 6px 2px 2px;
+  gap: 4px;
+  color: var(--muted);
 }
-.edit-speakers svg {
-  width: 16px;
+.voice-edit .voice {
+  overflow-wrap: anywhere;
+}
+.voice-edit .online {
+  margin-inline: 1px;
 }
 .sidebar nav button,
 .reviewlink {
@@ -733,17 +732,34 @@ button[aria-pressed="true"] {
   border-top: 1px solid var(--line);
   padding-top: 20px;
 }
+.dictation-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 12px;
+  margin-bottom: 10px;
+}
 .speechstate {
   color: var(--muted);
   background: transparent;
   border-color: transparent;
   font-size: 0.82rem;
   text-align: left;
-  margin-top: 8px;
   justify-content: flex-start;
   padding-left: 0;
   max-width: 100%;
   overflow-wrap: anywhere;
+}
+.dictation-fallback {
+  min-height: 32px;
+  padding: 4px 8px;
+  border-color: #e4c393;
+  background: #fbecd5;
+  color: #653c12;
+  font-size: 0.83rem;
+}
+.dictation-fallback:hover {
+  background: #f7e3c4;
 }
 .meter {
   display: grid;
@@ -1107,20 +1123,23 @@ blockquote {
 .checklist h3 {
   display: flex;
   justify-content: space-between;
+  font-size: 1.18rem;
 }
 .checklist label {
   display: flex;
   align-items: flex-start;
-  font-size: 0.85rem;
-  line-height: 1.45;
+  font-size: 1.08rem;
+  line-height: 1.5;
   font-weight: 450;
-  gap: 8px;
+  gap: 10px;
 }
 .checklist input {
-  margin-top: 3px;
+  margin-top: 6px;
+  flex: 0 0 auto;
   accent-color: var(--accent);
 }
 .checklist legend {
+  font-size: 1.03rem;
   font-weight: 750;
 }
 .prompter {
